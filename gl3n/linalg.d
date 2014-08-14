@@ -26,6 +26,7 @@ private {
     import std.string : format, rightJustify;
     import std.array : join;
     import std.algorithm : max, min, reduce;
+	import std.functional : binaryFun;
     import gl3n.math : clamp, PI, sqrt, sin, cos, acos, tan, asin, atan2, almostEqual;
     import gl3n.util : is_vector, is_matrix, is_quaternion, TupleRange;
 }
@@ -46,11 +47,11 @@ version(NoReciprocalMul) {
 /// alias Vector!(float, 4) vec4;
 /// alias Vector!(real, 2) vec2r;
 /// ---
-struct Vector(type, int dimension_) {
+struct Vector(type, size_t dimension_) {
     static assert(dimension > 0, "0 dimensional vectors don't exist.");
 
     alias type vt; /// Holds the internal type of the vector.
-    static const int dimension = dimension_; ///Holds the dimension of the vector.
+    enum dimension = dimension_; ///Holds the dimension of the vector.
 
     vt[dimension] vector; /// Holds all coordinates, length conforms dimension.
 
@@ -663,6 +664,20 @@ struct Vector(type, int dimension_) {
 
     return temp;
 }
+
+@safe pure nothrow T componentOp(alias func, T)(T v1, T v2)
+if(is_vector!T)
+{
+	auto retVal = T.init;
+	foreach(i; 0..T.dimension)
+	{
+		retVal.vector[i] = func(v1.vector[i], v2.vector[i]);
+	}
+	return retVal;
+}
+
+auto componentMin(T)(T v1, T v2) { return componentOp!min(v1, v2); }
+auto componentMax(T)(T v1, T v2) { return componentOp!max(v1, v2); }
 
 /// Calculates the cross product of two 3-dimensional vectors.
 @safe pure nothrow T cross(T)(const T veca, const T vecb) if(is_vector!T && (T.dimension == 3)) {

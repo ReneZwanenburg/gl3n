@@ -99,7 +99,7 @@ struct Frustum {
     /// Checks if the $(I aabb) intersects with the frustum.
     /// Returns OUTSIDE (= 0), INSIDE (= 1) or INTERSECT (= 2).
     int intersects(AABB aabb) {
-        vec3 hextent = aabb.half_extent;
+        vec3 hextent = aabb.halfExtent;
         vec3 center = aabb.center;
 
         int result = INSIDE;
