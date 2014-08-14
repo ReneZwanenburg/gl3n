@@ -4,3 +4,4 @@ ddoc/
 gl3n.pc
 import/
 lib/
+*.lib

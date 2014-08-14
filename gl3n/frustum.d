@@ -5,7 +5,7 @@ module gl3n.frustum;
 
 private {
     import gl3n.linalg : vec3, mat4, dot;
-    import gl3n.math : abs, cradians;
+    import gl3n.math : abs;
     import gl3n.aabb : AABB;
     import gl3n.plane : Plane;
 }

@@ -41,10 +41,10 @@ private {
     }
 }
 
-/// PI / 180 at compiletime, used for degrees/radians conversion.
-public enum real PI_180 = PI / 180;
-/// 180 / PI at compiletime, used for degrees/radians conversion.
-public enum real _180_PI = 180 / PI;
+public enum real DegToRad	= PI / 180;
+public enum real RadToDeg	= 180 / PI;
+
+public enum real Epsilon	= 0.000001f;
 
 /// Modulus. Returns x - y * floor(x/y).
 T mod(T)(T x, T y) { // std.math.floor is not pure
@@ -99,7 +99,7 @@ unittest {
 }
 
 /// Returns 1/sqrt(x), results are undefined if x <= 0.
-real inversesqrt(real x) {
+real invSqrt(real x) {
     return 1 / sqrt(x);
 }
 
@@ -115,9 +115,9 @@ float sign(T)(T x) {
 }
 
 unittest {
-    assert(inversesqrt(1.0f) == 1.0f);
-    assert(inversesqrt(10.0f) == (1/sqrt(10.0f)));
-    assert(inversesqrt(2342342.0f) == (1/sqrt(2342342.0f)));
+    assert(invSqrt(1.0f) == 1.0f);
+	assert(invSqrt(10.0f) == (1/sqrt(10.0f)));
+	assert(invSqrt(2342342.0f) == (1/sqrt(2342342.0f)));
     
     assert(sign(-1) == -1.0f);
     assert(sign(0) == 0.0f);
@@ -131,26 +131,23 @@ unittest {
 }
 
 /// Compares to values and returns true if the difference is epsilon or smaller.
-bool almost_equal(T, S)(T a, S b, float epsilon = 0.000001f) if(!is_vector!T && !is_quaternion!T) {
-    if(abs(a-b) <= epsilon) {
-        return true;
-    }
-    return abs(a-b) <= epsilon * abs(b);
+bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(!is_vector!T && !is_quaternion!T) {
+	return abs(a-b) <= epsilon;
 }
 
 /// ditto
-bool almost_equal(T, S)(T a, S b, float epsilon = 0.000001f) if(is_vector!T && is_vector!S && T.dimension == S.dimension) {
+bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(is_vector!T && is_vector!S && T.dimension == S.dimension) {
     foreach(i; 0..T.dimension) {
-        if(!almost_equal(a.vector[i], b.vector[i], epsilon)) {
+		if(!almostEqual(a.vector[i], b.vector[i], epsilon)) {
             return false;
         }
     }
     return true;
 }
 
-bool almost_equal(T)(T a, T b, float epsilon = 0.000001f) if(is_quaternion!T) {
+bool almostEqual(T)(T a, T b, float epsilon = Epsilon) if(is_quaternion!T) {
     foreach(i; 0..4) {
-        if(!almost_equal(a.quaternion[i], b.quaternion[i], epsilon)) {
+		if(!almostEqual(a.quaternion[i], b.quaternion[i], epsilon)) {
             return false;
         }
     }
@@ -158,59 +155,19 @@ bool almost_equal(T)(T a, T b, float epsilon = 0.000001f) if(is_quaternion!T) {
 }
 
 unittest {
-    assert(almost_equal(0, 0));
-    assert(almost_equal(1, 1));
-    assert(almost_equal(-1, -1));    
-    assert(almost_equal(0f, 0.000001f, 0.000001f));
-    assert(almost_equal(1f, 1.1f, 0.1f));
-    assert(!almost_equal(1f, 1.1f, 0.01f));
+	assert(almostEqual(0, 0));
+	assert(almostEqual(1, 1));
+	assert(almostEqual(-1, -1));    
+	assert(almostEqual(0f, 0.000001f, 0.000001f));
+	assert(almostEqual(1f, 1.1f, 0.1f));
+	assert(!almostEqual(1f, 1.1f, 0.01f));
 
-    assert(almost_equal(vec2i(0, 0), vec2(0.0f, 0.0f)));
-    assert(almost_equal(vec2(0.0f, 0.0f), vec2(0.000001f, 0.000001f)));
-    assert(almost_equal(vec3(0.0f, 1.0f, 2.0f), vec3i(0, 1, 2)));
+	assert(almostEqual(vec2i(0, 0), vec2(0.0f, 0.0f)));
+	assert(almostEqual(vec2(0.0f, 0.0f), vec2(0.000001f, 0.000001f)));
+	assert(almostEqual(vec3(0.0f, 1.0f, 2.0f), vec3i(0, 1, 2)));
 
-    assert(almost_equal(quat(0.0f, 0.0f, 0.0f, 0.0f), quat(0.0f, 0.0f, 0.0f, 0.0f)));
-    assert(almost_equal(quat(0.0f, 0.0f, 0.0f, 0.0f), quat(0.000001f, 0.000001f, 0.000001f, 0.000001f)));
-}
-
-/// Converts degrees to radians.
-real radians(real degrees) {
-    return PI_180 * degrees;
-}
-
-/// Compiletime version of $(I radians).
-real cradians(real degrees)() {
-    return radians(degrees);
-}
-
-/// Converts radians to degrees.
-real degrees(real radians) {
-    return _180_PI * radians;
-}
-
-/// Compiletime version of $(I degrees).
-real cdegrees(real radians)() {
-    return degrees(radians);
-}
-
-unittest {
-    assert(radians(to!(real)(0)) == 0);
-    assert(radians(to!(real)(90)) == PI/2);
-    assert(radians(to!(real)(180)) == PI);
-    assert(radians(to!(real)(360)) == 2*PI);
-    
-    assert(degrees(to!(real)(0)) == 0);
-    assert(degrees(to!(real)(PI/2)) == 90);
-    assert(degrees(to!(real)(PI)) == 180);
-    assert(degrees(to!(real)(2*PI)) == 360);    
-
-    assert(degrees(radians(to!(real)(12))) == 12);
-    assert(degrees(radians(to!(real)(100))) == 100);
-    assert(degrees(radians(to!(real)(213))) == 213);
-    assert(degrees(radians(to!(real)(399))) == 399);
-    
-    /+static+/ assert(almost_equal(cdegrees!PI, 180));
-    /+static+/ assert(almost_equal(cradians!180, PI));
+	assert(almostEqual(quat(0.0f, 0.0f, 0.0f, 0.0f), quat(0.0f, 0.0f, 0.0f, 0.0f)));
+	assert(almostEqual(quat(0.0f, 0.0f, 0.0f, 0.0f), quat(0.000001f, 0.000001f, 0.000001f, 0.000001f)));
 }
 
 /// Returns min(max(x, min_val), max_val), Results are undefined if min_val > max_val.
@@ -234,7 +191,7 @@ float step(T1, T2)(T1 edge, T2 x) {
 /// Returns 0.0 if x <= edge0 and 1.0 if x >= edge1 and performs smooth 
 /// hermite interpolation between 0 and 1 when edge0 < x < edge1. 
 /// This is useful in cases where you would want a threshold function with a smooth transition.
-CommonType!(T1, T2, T3) smoothstep(T1, T2, T3)(T1 edge0, T2 edge1, T3 x) {
+CommonType!(T1, T2, T3) smoothStep(T1, T2, T3)(T1 edge0, T2 edge1, T3 x) {
     auto t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
     return t * t * (3 - 2 * t);
 }
@@ -246,8 +203,8 @@ unittest {
     assert(step(10, 0) == 0.0f);
     assert(step(1, 1) == 1.0f);
     
-    assert(smoothstep(1, 0, 2) == 0);
-    assert(smoothstep(1.0, 0.0, 2.0) == 0);
-    assert(smoothstep(1.0, 0.0, 0.5) == 0.5);
-    assert(almost_equal(smoothstep(0.0, 2.0, 0.5), 0.15625, 0.00001));
+	assert(smoothStep(1, 0, 2) == 0);
+	assert(smoothStep(1.0, 0.0, 2.0) == 0);
+	assert(smoothStep(1.0, 0.0, 0.5) == 0.5);
+	assert(almostEqual(smoothStep(0.0, 2.0, 0.5), 0.15625, 0.00001));
 }

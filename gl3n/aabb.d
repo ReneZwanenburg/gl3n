@@ -2,7 +2,7 @@ module gl3n.aabb;
 
 private {
     import gl3n.linalg : Vector, vec3;
-    import gl3n.math : almost_equal;
+    import gl3n.math : almostEqual;
 }
 
 
@@ -144,10 +144,10 @@ struct AABBT(type) {
         assert(a.area == 6);
 
         AABB b = AABB(vec3(0.2f, 0.2f, 0.2f), vec3(1.0f, 1.0f, 1.0f));
-        assert(almost_equal(b.area, 3.84f));
+        assert(almostEqual(b.area, 3.84f));
 
         AABB c = AABB(vec3(0.2f, 0.4f, 0.6f), vec3(1.0f, 1.0f, 1.0f));
-        assert(almost_equal(c.area, 2.08f));
+        assert(almostEqual(c.area, 2.08f));
     }
 
     /// Returns the center of the AABB.

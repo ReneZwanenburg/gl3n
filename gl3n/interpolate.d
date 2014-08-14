@@ -11,7 +11,7 @@ module gl3n.interpolate;
 private {
     import gl3n.linalg : Vector, dot, vec2, vec3, vec4, quat;
     import gl3n.util : is_vector, is_quaternion;
-    import gl3n.math : almost_equal, acos, sin, sqrt, clamp, PI;
+    import gl3n.math : almostEqual, acos, sin, sqrt, clamp, PI;
     import std.conv : to;
 }
 
@@ -37,9 +37,9 @@ T interp_spherical(T)(T a, T b, float t) if(is_vector!T || is_quaternion!T) {
         );
     }
     
-    if(almost_equal(theta, 0)) {
+    if(almostEqual(theta, 0)) {
         return a;
-    } else if(almost_equal(theta, PI)) { // 180°?
+    } else if(almostEqual(theta, PI)) { // 180°?
         return interp(a, b, t);
     } else { // slerp
         real sintheta = sin(theta);

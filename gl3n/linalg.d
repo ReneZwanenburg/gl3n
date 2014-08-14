@@ -26,7 +26,7 @@ private {
     import std.string : format, rightJustify;
     import std.array : join;
     import std.algorithm : max, min, reduce;
-    import gl3n.math : clamp, PI, sqrt, sin, cos, acos, tan, asin, atan2, almost_equal;
+    import gl3n.math : clamp, PI, sqrt, sin, cos, acos, tan, asin, atan2, almostEqual;
     import gl3n.util : is_vector, is_matrix, is_quaternion, TupleRange;
 }
 
@@ -540,6 +540,11 @@ struct Vector(type, int dimension_) {
         }
     }
 
+	inout(vt[]) opSlice() inout
+	{
+		return vector[];
+	}
+
     unittest {
         vec2 v2 = vec2(1.0f, 3.0f);
         v2 *= 2.5f;
@@ -551,7 +556,7 @@ struct Vector(type, int dimension_) {
         assert(v2.length == sqrt(10.0f));
         assert(v2.length_squared == 10.0f);
         assert((v2.magnitude == v2.length) && (v2.magnitude_squared == v2.length_squared));
-        assert(almost_equal(v2.normalized, vec2(1.0f/sqrt(10.0f), 3.0f/sqrt(10.0f))));
+        assert(almostEqual(v2.normalized, vec2(1.0f/sqrt(10.0f), 3.0f/sqrt(10.0f))));
 
         vec3 v3 = vec3(1.0f, 3.0f, 5.0f);
         v3 *= 2.5f;
@@ -563,7 +568,7 @@ struct Vector(type, int dimension_) {
         assert(v3.length == sqrt(35.0f));
         assert(v3.length_squared == 35.0f);
         assert((v3.magnitude == v3.length) && (v3.magnitude_squared == v3.length_squared));
-        assert(almost_equal(v3.normalized, vec3(1.0f/sqrt(35.0f), 3.0f/sqrt(35.0f), 5.0f/sqrt(35.0f))));
+        assert(almostEqual(v3.normalized, vec3(1.0f/sqrt(35.0f), 3.0f/sqrt(35.0f), 5.0f/sqrt(35.0f))));
 
         vec4 v4 = vec4(1.0f, 3.0f, 5.0f, 7.0f);
         v4 *= 2.5f;
@@ -575,7 +580,7 @@ struct Vector(type, int dimension_) {
         assert(v4.length == sqrt(84.0f));
         assert(v4.length_squared == 84.0f);
         assert((v4.magnitude == v4.length) && (v4.magnitude_squared == v4.length_squared));
-        assert(almost_equal(v4.normalized, vec4(1.0f/sqrt(84.0f), 3.0f/sqrt(84.0f), 5.0f/sqrt(84.0f), 7.0f/sqrt(84.0f))));
+        assert(almostEqual(v4.normalized, vec4(1.0f/sqrt(84.0f), 3.0f/sqrt(84.0f), 5.0f/sqrt(84.0f), 7.0f/sqrt(84.0f))));
     }
 
     const int opCmp(ref const Vector vec) const {
@@ -2138,9 +2143,9 @@ struct Quaternion(type) {
 
         quat q2 = quat.from_matrix(mat3(1.0f, 3.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
         assert(q2.x == 0.0f);
-        assert(almost_equal(q2.y, 0.7071067f));
-        assert(almost_equal(q2.z, -1.060660));
-        assert(almost_equal(q2.w, 0.7071067f));
+        assert(almostEqual(q2.y, 0.7071067f));
+        assert(almostEqual(q2.z, -1.060660));
+        assert(almostEqual(q2.w, 0.7071067f));
     }
 
     /// Normalizes the current quaternion.
@@ -2179,7 +2184,7 @@ struct Quaternion(type) {
         q1.normalize();
         assert(q1.quaternion == q2.normalized.quaternion);
         //assert(q1.quaternion == q1.normalized.quaternion);
-        assert(almost_equal(q1.magnitude, 1.0));
+        assert(almostEqual(q1.magnitude, 1.0));
     }
 
     /// Returns the yaw.
@@ -2204,14 +2209,14 @@ struct Quaternion(type) {
         assert(q1.roll == 0.0f);
 
         quat q2 = quat(1.0f, 1.0f, 1.0f, 1.0f);
-        assert(almost_equal(q2.yaw, q2.roll));
-        assert(almost_equal(q2.yaw, 1.570796f));
+        assert(almostEqual(q2.yaw, q2.roll));
+        assert(almostEqual(q2.yaw, 1.570796f));
         assert(q2.pitch == 0.0f);
 
         quat q3 = quat(0.1f, 1.9f, 2.1f, 1.3f);
-        assert(almost_equal(q3.yaw, 2.4382f));
+        assert(almostEqual(q3.yaw, 2.4382f));
         assert(isNaN(q3.pitch));
-        assert(almost_equal(q3.roll, 1.67719f));
+        assert(almostEqual(q3.roll, 1.67719f));
     }
 
     /// Returns a quaternion with applied rotation around the x-axis.
@@ -2433,10 +2438,10 @@ struct Quaternion(type) {
         assert((q2 * q3).quaternion != q4.quaternion);
         q3 *= q2;
         assert(q4.quaternion == q3.quaternion);
-        assert(almost_equal(q4.x, 0.4f));
-        assert(almost_equal(q4.y, 6.8f));
-        assert(almost_equal(q4.z, 13.8f));
-        assert(almost_equal(q4.w, 4.4f));
+        assert(almostEqual(q4.x, 0.4f));
+        assert(almostEqual(q4.y, 6.8f));
+        assert(almostEqual(q4.z, 13.8f));
+        assert(almostEqual(q4.w, 4.4f));
 
         quat q5 = quat(1.0f, 2.0f, 3.0f, 4.0f);
         quat q6 = quat(3.0f, 1.0f, 6.0f, 2.0f);
