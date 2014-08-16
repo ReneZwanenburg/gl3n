@@ -10,12 +10,6 @@ private {
     import gl3n.plane : Plane;
 }
 
-enum {
-    OUTSIDE = 0, /// Used as flag to indicate if the object intersects with the frustum.
-    INSIDE, /// ditto
-    INTERSECT /// ditto
-}
-
 ///
 struct Frustum {
     enum {
@@ -102,21 +96,16 @@ struct Frustum {
         vec3 hextent = aabb.halfExtent;
         vec3 center = aabb.center;
 
-        int result = INSIDE;
         foreach(plane; planes) {
             float d = dot(center, plane.normal);
             float r = dot(hextent, abs(plane.normal));
 
             if(d + r < -plane.d) {
-                // outside
-                return OUTSIDE;
-            }
-            if(d - r < -plane.d) {
-               result = INTERSECT;
+                return false;
             }
         }
 
-        return result;
+        return true;
     }
 
     /// Returns true if the $(I aabb) intersects with the frustum or is inside it.

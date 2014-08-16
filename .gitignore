@@ -5,3 +5,4 @@ gl3n.pc
 import/
 lib/
 *.lib
+*.userprefs
