@@ -12,7 +12,6 @@ import gl3n.plane : PlaneT;
 
 import std.typecons : TypeTuple;
 
-enum isVector(T)		= is(T == Vector!Args,		Args...);
 enum isMatrix(T)		= is(T == Matrix!Args,		Args...);
 enum isQuaternion(T)	= is(T == Quaternion!Args,	Args...);
 enum isPlane(T)			= is(T == PlaneT!Args,		Args...);

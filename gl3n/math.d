@@ -32,7 +32,8 @@ import std.traits : CommonType;
 import std.range : ElementType;
 import smath = std.math;
 
-import gl3n.util : isVector, isQuaternion, isMatrix;
+import gl3n.vector : isVector;
+import gl3n.util : isQuaternion, isMatrix;
 
 version(unittest) {
     import gl3n.linalg : vec2, vec2i, vec3, vec3i, quat;

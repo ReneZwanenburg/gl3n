@@ -1,8 +1,7 @@
 module gl3n.plane;
 
-import gl3n.linalg : Vector, dot, homogeneousPoint;
+import gl3n.vector;
 import gl3n.math : almostEqual;
-import gl3n.util : isVector;
 
 import std.traits : isFloatingPoint;
 

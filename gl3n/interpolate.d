@@ -8,10 +8,11 @@ License: MIT
 
 module gl3n.interpolate;
 
-import gl3n.linalg : Vector, dot, vec2, vec3, vec4, quat;
-import gl3n.util : isVector, isQuaternion;
+import gl3n.linalg : quat;
+import gl3n.util : isQuaternion;
 import gl3n.math : almostEqual, acos, sin, sqrt, clamp, PI;
 import std.conv : to;
+import gl3n.vector;
 
 @safe pure nothrow:
 
