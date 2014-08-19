@@ -19,21 +19,22 @@ All static methods are strongly pure.
 
 module gl3n.linalg;
 
-private {
-    import std.math : isNaN, isInfinity;
-    import std.conv : to;
-    import std.traits : isIntegral, isFloatingPoint, isStaticArray, isDynamicArray, isImplicitlyConvertible, isArray;
-    import std.string : format, rightJustify;
-    import std.array : join;
-    import std.algorithm : max, min, reduce;
-	import std.functional : binaryFun;
-    import gl3n.math : clamp, PI, sqrt, sin, cos, acos, tan, asin, atan2, almostEqual;
-    import gl3n.util : isVector, isMatrix, isQuaternion, TupleRange;
-}
+import std.math : isNaN, isInfinity;
+import std.conv : to;
+import std.traits : isIntegral, isFloatingPoint, isStaticArray, isDynamicArray, isImplicitlyConvertible, isArray;
+import std.string : format, rightJustify;
+import std.array : join;
+import std.algorithm : max, min, reduce;
+import std.functional : binaryFun;
+import gl3n.math : clamp, PI, sqrt, sin, cos, acos, tan, asin, atan2, almostEqual;
+import gl3n.util : isVector, isMatrix, isQuaternion, TupleRange;
 
-version(NoReciprocalMul) {
+version(NoReciprocalMul)
+{
     private enum rmul = false;
-} else {
+}
+else
+{
     private enum rmul = true;
 }
 
@@ -47,7 +48,8 @@ version(NoReciprocalMul) {
 /// alias Vector!(float, 4) vec4;
 /// alias Vector!(real, 2) vec2r;
 /// ---
-struct Vector(type, size_t dimension_) {
+struct Vector(type, size_t dimension_)
+{
     static assert(dimension > 0, "0 dimensional vectors don't exist.");
 
     alias type vt; /// Holds the internal type of the vector.
@@ -56,56 +58,66 @@ struct Vector(type, size_t dimension_) {
     vt[dimension] vector; /// Holds all coordinates, length conforms dimension.
 
     /// Returns a pointer to the coordinates.
-    @property auto value_ptr() { return vector.ptr; }
+    @property auto ptr() { return vector.ptr; }
 
     /// Returns the current vector formatted as string, useful for printing the vector.
-    @property string as_string() {
+	@property string toString()
+	{
         return format("%s", vector);
     }
-    alias as_string toString; /// ditto
 
     @safe pure nothrow:
     ///
-    private @property ref inout(vt) get_(char coord)() inout {
-        return vector[coord_to_index!coord];
+    private @property ref inout(vt) get_(char coord)() inout
+	{
+        return vector[coordToIndex!coord];
     }
 
     alias get_!'x' x; /// static properties to access the values.
     alias x u; /// ditto
     alias x s; /// ditto
     alias x r; /// ditto
-    static if(dimension >= 2) {
+    static if(dimension >= 2)
+	{
         alias get_!'y' y; /// ditto
         alias y v; /// ditto
         alias y t; /// ditto
         alias y g; /// ditto
     }
-    static if(dimension >= 3) {
+    static if(dimension >= 3)
+	{
         alias get_!'z' z; /// ditto
         alias z b; /// ditto
         alias z p; /// ditto
     }
-    static if(dimension >= 4) {
+    static if(dimension >= 4)
+	{
         alias get_!'w' w; /// ditto
         alias w a; /// ditto
         alias w q; /// ditto
     }
 
-    static if(dimension == 2) {
+    static if(dimension == 2)
+	{
         enum Vector e1 = Vector(1.to!vt, 0.to!vt); /// canonical basis for Euclidian space
         enum Vector e2 = Vector(0.to!vt, 1.to!vt); /// ditto
-    } else static if(dimension == 3) {
+    }
+	else static if(dimension == 3)
+	{
         enum Vector e1 = Vector(1.to!vt, 0.to!vt, 0.to!vt); /// canonical basis for Euclidian space
         enum Vector e2 = Vector(0.to!vt, 1.to!vt, 0.to!vt); /// ditto
         enum Vector e3 = Vector(0.to!vt, 0.to!vt, 1.to!vt); /// ditto
-    } else static if(dimension == 4) {
+    }
+	else static if(dimension == 4)
+	{
         enum Vector e1 = Vector(1.to!vt, 0.to!vt, 0.to!vt, 0.to!vt); /// canonical basis for Euclidian space
         enum Vector e2 = Vector(0.to!vt, 1.to!vt, 0.to!vt, 0.to!vt); /// ditto
         enum Vector e3 = Vector(0.to!vt, 0.to!vt, 1.to!vt, 0.to!vt); /// ditto
         enum Vector e4 = Vector(0.to!vt, 0.to!vt, 0.to!vt, 1.to!vt); /// ditto
     }
 
-    unittest {
+    unittest
+	{
         assert(vec2.e1.vector == [1.0, 0.0]);
         assert(vec2.e2.vector == [0.0, 1.0]);
 
@@ -119,41 +131,46 @@ struct Vector(type, size_t dimension_) {
         assert(vec4.e4.vector == [0.0, 0.0, 0.0, 1.0]);
     }
 
-    static void isCompatibleVectorImpl(int d)(Vector!(vt, d) vec) if(d <= dimension) {
-    }
+    private static void isCompatibleVectorImpl(int d)(Vector!(vt, d) vec) if(d <= dimension) { }
+    enum isCompatibleVector(T) = is(typeof(isCompatibleVectorImpl(T.init)));
 
-    template isCompatibleVector(T) {
-        enum isCompatibleVector = is(typeof(isCompatibleVectorImpl(T.init)));
-    }
+    static void isCompatibleMatrixImpl(int r, int c)(Matrix!(vt, r, c) m) { }
+    enum isCompatibleMatrix(T) = is(typeof(isCompatibleMatrixImpl(T.init)));
 
-    static void isCompatibleMatrixImpl(int r, int c)(Matrix!(vt, r, c) m) {
-    }
-
-    template isCompatibleMatrix(T) {
-        enum isCompatibleMatrix = is(typeof(isCompatibleMatrixImpl(T.init)));
-    }
-
-    private void construct(int i, T, Tail...)(T head, Tail tail) {
-        static if(i >= dimension) {
+    private void construct(int i, T, Tail...)(T head, Tail tail)
+	{
+        static if(i >= dimension)
+		{
             static assert(false, "Too many arguments passed to constructor");
-        } else static if(is(T : vt)) {
+        }
+		else static if(is(T : vt))
+		{
             vector[i] = head;
             construct!(i + 1)(tail);
-        } else static if(isDynamicArray!T) {
+        }
+		else static if(isDynamicArray!T)
+		{
             static assert((Tail.length == 0) && (i == 0), "dynamic array can not be passed together with other arguments");
             vector[] = head[];
-        } else static if(isStaticArray!T) {
+        }
+		else static if(isStaticArray!T)
+		{
             vector[i .. i + T.length] = head[];
             construct!(i + T.length)(tail);
-        } else static if(isCompatibleVector!T) {
+        }
+		else static if(isCompatibleVector!T)
+		{
             vector[i .. i + T.dimension] = head.vector[];
             construct!(i + T.dimension)(tail);
-        } else {
+        }
+		else
+		{
             static assert(false, "Vector constructor argument must be of type " ~ vt.stringof ~ " or Vector, not " ~ T.stringof);
         }
     }
 
-    private void construct(int i)() { // terminate
+    private void construct(int i)()
+	{ // terminate
         static assert(i == dimension, "Not enough arguments passed to constructor");
     }
 
@@ -168,46 +185,53 @@ struct Vector(type, size_t dimension_) {
     /// vec2 v2 = v3.xy; // swizzling returns a static array.
     /// vec3 v3_2 = vec3(1.0f); // vec3 v3_2 = vec3(1.0f, 1.0f, 1.0f);
     /// ---
-    this(Args...)(Args args) {
+    this(Args...)(Args args)
+	{
         construct!(0)(args);
     }
 
     /// ditto
-    this(T)(T vec) if(isVector!T && is(T.vt : vt) && (T.dimension >= dimension)) {
-        foreach(i; TupleRange!(0, dimension)) {
+    this(T)(T vec)
+	if(isVector!T && is(T.vt : vt) && (T.dimension >= dimension))
+	{
+        foreach(i; TupleRange!(0, dimension))
+		{
             vector[i] = vec.vector[i];
         }
     }
 
     /// ditto
-    this()(vt value) {
+    this()(vt value)
+	{
         clear(value);
     }
 
     /// Returns true if all values are not nan and finite, otherwise false.
-    @property bool isFinite() const {
-        static if(isIntegral!type) {
+    @property bool isFinite() const
+	{
+        static if(isIntegral!type)
+		{
             return true;
         }
-        else {
-            foreach(v; vector) {
-                if(isNaN(v) || isInfinity(v)) {
-                    return false;
-                }
-            }
-            return true;
+        else
+		{
+			import std.algorithm : all;
+			import std.math : isFinite;
+			return vector[].all!(isFinite);
         }
     }
-    deprecated("Use isFinite instead of ok") alias ok = isFinite;
 
     /// Sets all values of the vector to value.
-    void clear(vt value) {
-        foreach(i; TupleRange!(0, dimension)) {
+    void clear(vt value)
+	{
+        foreach(i; TupleRange!(0, dimension))
+		{
             vector[i] = value;
         }
     }
 
-    unittest {
+    unittest
+	{
         vec3 vec_clear;
         assert(!vec_clear.isFinite);
         vec_clear.clear(1.0f);
@@ -269,32 +293,61 @@ struct Vector(type, size_t dimension_) {
         static assert(!__traits(compiles, vec4(vec3(0.0f, 0.0f, 0.0f))));
     }
 
-    template coord_to_index(char c) {
-        static if((c == 'x') || (c == 'r') || (c == 'u') || (c == 's')) {
-            enum coord_to_index = 0;
-        } else static if((c == 'y') || (c == 'g') || (c == 'v') || (c == 't')) {
-            enum coord_to_index = 1;
-        } else static if((c == 'z') || (c == 'b') || (c == 'p')) {
+    template coordToIndex(char c)
+	{
+		import std.algorithm : among;
+
+        static if(c.among('x', 'r', 'u', 's'))
+		{
+			enum coordToIndex = 0;
+        }
+		else static if(c.among('y', 'g', 'v', 't'))
+		{
+			enum coordToIndex = 1;
+        }
+		else static if(c.among('z', 'b', 'p'))
+		{
             static assert(dimension >= 3, "the " ~ c ~ " property is only available on vectors with a third dimension.");
-            enum coord_to_index = 2;
-        } else static if((c == 'w') || (c == 'a') || (c == 'q')) {
+			enum coordToIndex = 2;
+        }
+		else static if(c.among('w', 'a', 'q'))
+		{
             static assert(dimension >= 4, "the " ~ c ~ " property is only available on vectors with a fourth dimension.");
-            enum coord_to_index = 3;
-        } else {
+			enum coordToIndex = 3;
+        }
+		else
+		{
             static assert(false, "accepted coordinates are x, s, r, u, y, g, t, v, z, p, b, w, q and a not " ~ c ~ ".");
         }
     }
 
-    static if(dimension == 2) { void set(vt x, vt y) { vector[0] = x; vector[1] = y; } }
-    static if(dimension == 3) { void set(vt x, vt y, vt z) { vector[0] = x; vector[1] = y; vector[2] = z; } }
-    static if(dimension == 4) { void set(vt x, vt y, vt z, vt w) { vector[0] = x; vector[1] = y; vector[2] = z; vector[3] = w; } }
+    static if(dimension >= 2)
+	{
+		void set(vt x, vt y)
+		{
+			vector[0] = x;
+			vector[1] = y;
+		}
+	}
+	static if(dimension >= 3)
+	{
+		void set(vt x, vt y, vt z)
+		{
+			set(x, y);
+			vector[2] = z;
+		}
+	}
+	static if(dimension >= 4)
+	{
+		void set(vt x, vt y, vt z, vt w)
+		{
+			set(x, y, z);
+			vector[3] = w;
+		}
+	}
 
-    /// Updates the vector with the values from other.
-    void update(Vector!(vt, dimension) other) {
-        vector = other.vector;
-    }
-
-    unittest {
+    unittest
+	{
         vec2 v2 = vec2(1.0f, 2.0f);
         assert(v2.x == 1.0f);
         assert(v2.y == 2.0f);
@@ -369,16 +422,19 @@ struct Vector(type, size_t dimension_) {
         assert(v4.vector == [3.0f, 4.0f, 5.0f, 6.0f]);
     }
 
-    private void dispatchImpl(int i, string s, int size)(ref vt[size] result) const {
-        static if(s.length > 0) {
-            result[i] = vector[coord_to_index!(s[0])];
+    private void dispatchImpl(int i, string s, int size)(ref vt[size] result) const
+	{
+        static if(s.length > 0)
+		{
+            result[i] = vector[coordToIndex!(s[0])];
             dispatchImpl!(i + 1, s[1..$])(result);
         }
     }
 
     /// Implements dynamic swizzling.
     /// Returns: a Vector
-    @property Vector!(vt, s.length) opDispatch(string s)() const {
+    @property Vector!(vt, s.length) opDispatch(string s)() const
+	{
         vt[s.length] ret;
         dispatchImpl!(0, s)(ret);
         Vector!(vt, s.length) ret_vec;
@@ -386,7 +442,8 @@ struct Vector(type, size_t dimension_) {
         return ret_vec;
     }
 
-    unittest {
+    unittest
+	{
         vec2 v2 = vec2(1.0f, 2.0f);
         assert(v2.xytsy == [1.0f, 2.0f, 2.0f, 1.0f, 2.0f]);
 
@@ -399,10 +456,12 @@ struct Vector(type, size_t dimension_) {
     }
 
     /// Returns the squared magnitude of the vector.
-    @property real magnitude_squared() const {
+    @property real sqrMagnitude() const
+	{
         real temp = 0;
 
-        foreach(index; TupleRange!(0, dimension)) {
+        foreach(index; TupleRange!(0, dimension))
+		{
             temp += vector[index]^^2;
         }
 
@@ -410,43 +469,47 @@ struct Vector(type, size_t dimension_) {
     }
 
     /// Returns the magnitude of the vector.
-    @property real magnitude() const {
-        return sqrt(magnitude_squared);
+    @property real magnitude() const
+	{
+        return sqrt(sqrMagnitude);
     }
 
-    alias magnitude_squared length_squared; /// ditto
-    alias magnitude length; /// ditto
-
     /// Normalizes the vector.
-    void normalize() {
+    void normalize()
+	{
         real len = length;
 
-        if(len != 0) {
-            foreach(index; TupleRange!(0, dimension)) {
+        if(len != 0)
+		{
+            foreach(index; TupleRange!(0, dimension))
+			{
                 vector[index] /= len;
             }
         }
     }
 
     /// Returns a normalized copy of the current vector.
-    @property Vector normalized() const {
-        Vector ret;
-        ret.update(this);
+    @property Vector normalized() const
+	{
+        Vector ret = this;
         ret.normalize();
         return ret;
     }
 
-    Vector opUnary(string op : "-")() const {
+    Vector opUnary(string op : "-")() const
+	{
         Vector ret;
 
-        foreach(index; TupleRange!(0, dimension)) {
+        foreach(index; TupleRange!(0, dimension))
+		{
             ret.vector[index] = -vector[index];
         }
 
         return ret;
     }
 
-    unittest {
+    unittest
+	{
         assert(vec2(1.0f, 1.0f) == -vec2(-1.0f, -1.0f));
         assert(vec2(-1.0f, 1.0f) == -vec2(1.0f, -1.0f));
 
@@ -457,50 +520,44 @@ struct Vector(type, size_t dimension_) {
         assert(vec4(-1.0f, 1.0f, -1.0f, 1.0f) == -vec4(1.0f, -1.0f, 1.0f, -1.0f));
     }
 
-    // let the math begin!
-    Vector opBinary(string op : "*")(vt r) const {
+    Vector opBinary(string op : "*")(vt r) const
+	{
         Vector ret;
 
-        foreach(index; TupleRange!(0, dimension)) {
+        foreach(index; TupleRange!(0, dimension))
+		{
             ret.vector[index] = vector[index] * r;
         }
 
         return ret;
     }
 
-    Vector opBinary(string op)(Vector r) const if((op == "+") || (op == "-")) {
+    Vector opBinary(string op)(Vector r) const
+	if((op == "+") || (op == "-"))
+	{
         Vector ret;
 
-        foreach(index; TupleRange!(0, dimension)) {
+        foreach(index; TupleRange!(0, dimension))
+		{
             ret.vector[index] = mixin("vector[index]" ~ op ~ "r.vector[index]");
         }
 
         return ret;
     }
 
-    vt opBinary(string op : "*")(Vector r) const {
+    vt opBinary(string op : "*")(Vector r) const
+	{
         return dot(this, r);
     }
 
-    // vector * matrix (for matrix * vector -> struct Matrix)
-    Vector!(vt, T.cols) opBinary(string op : "*", T)(T inp) const if(isCompatibleMatrix!T && (T.rows == dimension)) {
-        Vector!(vt, T.cols) ret;
-        ret.clear(0);
-
-        foreach(c; TupleRange!(0, T.cols)) {
-            foreach(r; TupleRange!(0, T.rows)) {
-                ret.vector[c] += vector[r] * inp.matrix[r][c];
-            }
-        }
-
-        return ret;
-    }
-
-    auto opBinaryRight(string op, T)(T inp) const if(!isVector!T && !isMatrix!T && !isQuaternion!T) {
+    auto opBinaryRight(string op, T)(T inp) const
+	if(!isVector!T && !isMatrix!T && !isQuaternion!T)
+	{
         return this.opBinary!(op)(inp);
     }
 
-    unittest {
+    unittest
+	{
         vec2 v2 = vec2(1.0f, 3.0f);
         auto v2times2 = 2 * v2;
         assert((v2*2.5f).vector == [2.5f, 7.5f]);
@@ -529,14 +586,19 @@ struct Vector(type, size_t dimension_) {
         assert((v3_2*m3).vector == [24.0f, 30.0f, 36.0f]);
     }
 
-    void opOpAssign(string op : "*")(vt r) {
-        foreach(index; TupleRange!(0, dimension)) {
+    void opOpAssign(string op : "*")(vt r)
+	{
+        foreach(index; TupleRange!(0, dimension))
+		{
             vector[index] *= r;
         }
     }
 
-    void opOpAssign(string op)(Vector r) if((op == "+") || (op == "-")) {
-        foreach(index; TupleRange!(0, dimension)) {
+    void opOpAssign(string op)(Vector r)
+	if((op == "+") || (op == "-"))
+	{
+        foreach(index; TupleRange!(0, dimension))
+		{
             mixin("vector[index]" ~ op ~ "= r.vector[index];");
         }
     }
@@ -546,7 +608,8 @@ struct Vector(type, size_t dimension_) {
 		return vector[];
 	}
 
-    unittest {
+    unittest
+	{
         vec2 v2 = vec2(1.0f, 3.0f);
         v2 *= 2.5f;
         assert(v2.vector == [2.5f, 7.5f]);
@@ -556,7 +619,7 @@ struct Vector(type, size_t dimension_) {
         assert(v2.vector == [1.0f, 3.0f]);
         assert(v2.length == sqrt(10.0f));
         assert(v2.length_squared == 10.0f);
-        assert((v2.magnitude == v2.length) && (v2.magnitude_squared == v2.length_squared));
+        assert((v2.magnitude == v2.length) && (v2.sqrMagnitude == v2.length_squared));
         assert(almostEqual(v2.normalized, vec2(1.0f/sqrt(10.0f), 3.0f/sqrt(10.0f))));
 
         vec3 v3 = vec3(1.0f, 3.0f, 5.0f);
@@ -568,7 +631,7 @@ struct Vector(type, size_t dimension_) {
         assert(v3.vector == [1.0f, 3.0f, 5.0f]);
         assert(v3.length == sqrt(35.0f));
         assert(v3.length_squared == 35.0f);
-        assert((v3.magnitude == v3.length) && (v3.magnitude_squared == v3.length_squared));
+        assert((v3.magnitude == v3.length) && (v3.sqrMagnitude == v3.length_squared));
         assert(almostEqual(v3.normalized, vec3(1.0f/sqrt(35.0f), 3.0f/sqrt(35.0f), 5.0f/sqrt(35.0f))));
 
         vec4 v4 = vec4(1.0f, 3.0f, 5.0f, 7.0f);
@@ -580,15 +643,20 @@ struct Vector(type, size_t dimension_) {
         assert(v4.vector == [1.0f, 3.0f, 5.0f, 7.0f]);
         assert(v4.length == sqrt(84.0f));
         assert(v4.length_squared == 84.0f);
-        assert((v4.magnitude == v4.length) && (v4.magnitude_squared == v4.length_squared));
+        assert((v4.magnitude == v4.length) && (v4.sqrMagnitude == v4.length_squared));
         assert(almostEqual(v4.normalized, vec4(1.0f/sqrt(84.0f), 3.0f/sqrt(84.0f), 5.0f/sqrt(84.0f), 7.0f/sqrt(84.0f))));
     }
 
-    const int opCmp(ref const Vector vec) const {
-        foreach(i, a; vector) {
-            if(a < vec.vector[i]) {
+    int opCmp(ref const Vector vec) const
+	{
+        foreach(i, a; vector)
+		{
+            if(a < vec.vector[i])
+			{
                 return -1;
-            } else if(a > vec.vector[i]) {
+            }
+			else if(a > vec.vector[i])
+			{
                 return 1;
             }
         }
@@ -597,29 +665,12 @@ struct Vector(type, size_t dimension_) {
         return 0;
     }
 
-    const bool opEquals(T)(const T vec) if(!isArray!T && T.dimension == dimension) {
-        return vector == vec.vector;
-    }
-
-    const bool opEquals(T)(const(T)[] array) if(!isArray!T && !isVector!T) {
-        if(array.length != dimension) {
-            return false;
-        }
-
-        foreach(index; TupleRange!(0, dimension)) {
-            if(vector[index] != array[index]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     bool opCast(T : bool)() const {
         return isFinite;
     }
 
-    unittest {
+    unittest
+	{
         assert(vec2(1.0f, 2.0f) == vec2(1.0f, 2.0f));
         assert(vec2(1.0f, 2.0f) != vec2(1.0f, 1.0f));
         assert(vec2(1.0f, 2.0f) == vec2d(1.0, 2.0));
@@ -655,17 +706,21 @@ struct Vector(type, size_t dimension_) {
 }
 
 /// Calculates the product between two vectors.
-@safe pure nothrow T.vt dot(T)(const T veca, const T vecb) if(isVector!T) {
+@safe pure nothrow T.vt dot(T)(const T veca, const T vecb)
+if(isVector!T)
+{
     T.vt temp = 0;
 
-    foreach(index; TupleRange!(0, T.dimension)) {
+    foreach(index; TupleRange!(0, T.dimension))
+	{
         temp += veca.vector[index] * vecb.vector[index];
     }
 
     return temp;
 }
 
-@safe pure nothrow auto homogeneousPoint(T)(const T v) if(isVector!T)
+@safe pure nothrow auto homogeneousPoint(T)(const T v)
+if(isVector!T)
 {
 	static if(T.dimension == 4)
 	{
@@ -694,18 +749,23 @@ auto componentMin(T)(T v1, T v2) { return componentOp!min(v1, v2); }
 auto componentMax(T)(T v1, T v2) { return componentOp!max(v1, v2); }
 
 /// Calculates the cross product of two 3-dimensional vectors.
-@safe pure nothrow T cross(T)(const T veca, const T vecb) if(isVector!T && (T.dimension == 3)) {
+@safe pure nothrow T cross(T)(const T veca, const T vecb)
+if(isVector!T && (T.dimension == 3))
+{
    return T(veca.y * vecb.z - vecb.y * veca.z,
             veca.z * vecb.x - vecb.z * veca.x,
             veca.x * vecb.y - vecb.x * veca.y);
 }
 
 /// Calculates the distance between two vectors.
-@safe pure nothrow T.vt distance(T)(const T veca, const T vecb) if(isVector!T) {
+@safe pure nothrow T.vt distance(T)(const T veca, const T vecb)
+if(isVector!T)
+{
     return (veca - vecb).length;
 }
 
-unittest {
+unittest
+{
     // dot is already tested in Vector.opBinary, so no need for testing with more vectors
     vec3 v1 = vec3(1.0f, 2.0f, -3.0f);
     vec3 v2 = vec3(1.0f, 3.0f, 2.0f);
@@ -1948,10 +2008,10 @@ struct Quaternion(type) {
 
     @safe pure nothrow:
     private @property qt get_(char coord)() const {
-        return quaternion[coord_to_index!coord];
+        return quaternion[coordToIndex!coord];
     }
     private @property void set_(char coord)(qt value) {
-        quaternion[coord_to_index!coord] = value;
+        quaternion[coordToIndex!coord] = value;
     }
 
     alias get_!'w' w; /// static properties to access the values.
@@ -2012,28 +2072,28 @@ struct Quaternion(type) {
         assert(q1.isFinite);
     }
 
-    template coord_to_index(char c) {
+    template coordToIndex(char c) {
         static if(c == 'w') {
-            enum coord_to_index = 0;
+            enum coordToIndex = 0;
         } else static if(c == 'x') {
-            enum coord_to_index = 1;
+            enum coordToIndex = 1;
         } else static if(c == 'y') {
-            enum coord_to_index = 2;
+            enum coordToIndex = 2;
         } else static if(c == 'z') {
-            enum coord_to_index = 3;
+            enum coordToIndex = 3;
         } else {
             static assert(false, "accepted coordinates are x, y, z and w not " ~ c ~ ".");
         }
     }
 
     /// Returns the squared magnitude of the quaternion.
-    @property real magnitude_squared() const {
+    @property real sqrMagnitude() const {
         return to!real(w^^2 + x^^2 + y^^2 + z^^2);
     }
 
     /// Returns the magnitude of the quaternion.
     @property real magnitude() const {
-        return sqrt(magnitude_squared);
+        return sqrt(sqrMagnitude);
     }
 
     /// Returns an identity quaternion (w=1, x=0, y=0, z=0).
@@ -2067,7 +2127,7 @@ struct Quaternion(type) {
         quat q1 = quat(1.0f, 1.0f, 1.0f, 1.0f);
 
         assert(q1.magnitude == 2.0f);
-        assert(q1.magnitude_squared == 4.0f);
+        assert(q1.sqrMagnitude == 4.0f);
         assert(q1.magnitude == quat(0.0f, 0.0f, 2.0f, 0.0f).magnitude);
 
         quat q2 = quat.identity;
