@@ -58,7 +58,10 @@ struct Vector(type, size_t dimension_)
     vt[dimension] vector; /// Holds all coordinates, length conforms dimension.
 
     /// Returns a pointer to the coordinates.
-    @property auto ptr() { return vector.ptr; }
+    @property auto ptr()
+	{
+		return vector.ptr;
+	}
 
     /// Returns the current vector formatted as string, useful for printing the vector.
 	@property string toString()
@@ -821,7 +824,8 @@ if((rows_ > 0) && (cols_ > 0))
     mt[cols][rows] matrix; // In C it would be mt[rows][cols], D does it like this: (mt[foo])[bar]
     alias matrix this;
 
-    unittest {
+    unittest
+	{
         mat2 m2 = mat2(0.0f, 1.0f, 2.0f, 3.0f);
         assert(m2[0][0] == 0.0f);
         assert(m2[0][1] == 1.0f);
@@ -863,16 +867,19 @@ if((rows_ > 0) && (cols_ > 0))
     /// // 3rd argument = GL_TRUE
     /// glUniformMatrix4fv(programs.main.model, 1, GL_TRUE, mat4.translation(-0.5f, -0.5f, 1.0f).value_ptr);
     /// ---
-    @property auto value_ptr() { return matrix[0].ptr; }
+    @property auto ptr()
+	{
+		return matrix[0].ptr;
+	}
 
     /// Returns the current matrix formatted as flat string.
-    @property string as_string() {
+	@property string toString()
+	{
         return format("%s", matrix);
     }
-    alias as_string toString; /// ditto
 
     /// Returns the current matrix as pretty formatted string.
-    @property string as_pretty_string() {
+	@property string toPrettyString() {
         string fmtr = "%s";
 
         size_t rjust = max(format(fmtr, reduce!(max)(matrix[])).length,
@@ -889,42 +896,45 @@ if((rows_ > 0) && (cols_ > 0))
 
         return "[" ~ join(outer_parts, "\n")[1..$] ~ "]";
     }
-    alias as_pretty_string toPrettyString; /// ditto
 
     @safe pure nothrow:
-    static void isCompatibleMatrixImpl(int r, int c)(Matrix!(mt, r, c) m) {
-    }
+    static void isCompatibleMatrixImpl(int r, int c)(Matrix!(mt, r, c) m) { }
+    enum isCompatibleMatrix(T) = is(typeof(isCompatibleMatrixImpl(T.init)));
 
-    template isCompatibleMatrix(T) {
-        enum isCompatibleMatrix = is(typeof(isCompatibleMatrixImpl(T.init)));
-    }
+    static void isCompatibleVectorImpl(int d)(Vector!(mt, d) vec) { }
+    enum isCompatibleVector(T) = is(typeof(isCompatibleVectorImpl(T.init)));
 
-    static void isCompatibleVectorImpl(int d)(Vector!(mt, d) vec) {
-    }
-
-    template isCompatibleVector(T) {
-        enum isCompatibleVector = is(typeof(isCompatibleVectorImpl(T.init)));
-    }
-
-    private void construct(int i, T, Tail...)(T head, Tail tail) {
-        static if(i >= rows*cols) {
+    private void construct(int i, T, Tail...)(T head, Tail tail)
+	{
+        static if(i >= rows*cols)
+		{
             static assert(false, "Too many arguments passed to constructor");
-        } else static if(is(T : mt)) {
+        }
+		else static if(is(T : mt))
+		{
             matrix[i / cols][i % cols] = head;
             construct!(i + 1)(tail);
-        } else static if(is(T == Vector!(mt, cols))) {
-            static if(i % cols == 0) {
+        }
+		else static if(is(T == Vector!(mt, cols)))
+		{
+            static if(i % cols == 0)
+			{
                 matrix[i / cols] = head.vector;
                 construct!(i + T.dimension)(tail);
-            } else {
+            }
+			else
+			{
                 static assert(false, "Can't convert Vector into the matrix. Maybe it doesn't align to the columns correctly or dimension doesn't fit");
             }
-        } else {
+        }
+		else
+		{
             static assert(false, "Matrix constructor argument must be of type " ~ mt.stringof ~ " or Vector, not " ~ T.stringof);
         }
     }
 
-    private void construct(int i)() { // terminate
+    private void construct(int i)()
+	{ // terminate
         static assert(i == rows*cols, "Not enough arguments passed to constructor");
     }
 
@@ -941,44 +951,60 @@ if((rows_ > 0) && (cols_ > 0))
     /// mat4 m4 = mat4.identity; // just an identity matrix
     /// mat3 m3_3 = mat3(m4); // mat3 m3_3 = mat3.identity
     /// ---
-    this(Args...)(Args args) {
+    this(Args...)(Args args)
+	{
         construct!(0)(args);
     }
 
     /// ditto
-    this(T)(T mat) if(isMatrix!T && (T.cols >= cols) && (T.rows >= rows)) {
-        foreach(r; TupleRange!(0, rows)) {
-            foreach(c; TupleRange!(0, cols)) {
+    this(T)(T mat)
+	if(isMatrix!T && (T.cols >= cols) && (T.rows >= rows))
+	{
+        foreach(r; TupleRange!(0, rows))
+		{
+            foreach(c; TupleRange!(0, cols))
+			{
                 matrix[r][c] = mat.matrix[r][c];
             }
         }
     }
 
     /// ditto
-    this(T)(T mat) if(isMatrix!T && (T.cols < cols) && (T.rows < rows)) {
-        make_identity();
+    this(T)(T mat)
+	if(isMatrix!T && (T.cols < cols) && (T.rows < rows))
+	{
+        makeIdentity();
 
-        foreach(r; TupleRange!(0, T.rows)) {
-            foreach(c; TupleRange!(0, T.cols)) {
+        foreach(r; TupleRange!(0, T.rows))
+		{
+            foreach(c; TupleRange!(0, T.cols))
+			{
                 matrix[r][c] = mat.matrix[r][c];
             }
         }
     }
 
     /// ditto
-    this()(mt value) {
+    this()(mt value)
+	{
         clear(value);
     }
 
     /// Returns true if all values are not nan and finite, otherwise false.
-    @property bool isFinite() const {
-        static if(isIntegral!type) {
+    @property bool isFinite() const
+	{
+        static if(isIntegral!type)
+		{
             return true;
         }
-        else {
-            foreach(row; matrix) {
-                foreach(col; row) {
-                    if(isNaN(col) || isInfinity(col)) {
+        else
+		{
+            foreach(row; matrix)
+			{
+                foreach(col; row)
+				{
+                    if(isNaN(col) || isInfinity(col))
+					{
                         return false;
                     }
                 }
@@ -987,18 +1013,21 @@ if((rows_ > 0) && (cols_ > 0))
         }
 
     }
-    deprecated("Use isFinite instead of ok") alias ok = isFinite;
 
     /// Sets all values of the matrix to value (each column in each row will contain this value).
-    void clear(mt value) {
-        foreach(r; TupleRange!(0, rows)) {
-            foreach(c; TupleRange!(0, cols)) {
+    void clear(mt value)
+	{
+        foreach(r; TupleRange!(0, rows))
+		{
+            foreach(c; TupleRange!(0, cols))
+			{
                 matrix[r][c] = value;
             }
         }
     }
 
-    unittest {
+    unittest
+	{
         mat2 m2 = mat2(1.0f, 1.0f, vec2(2.0f, 2.0f));
         assert(m2.matrix == [[1.0f, 1.0f], [2.0f, 2.0f]]);
         m2.clear(3.0f);
@@ -1045,21 +1074,26 @@ if((rows_ > 0) && (cols_ > 0))
         static assert(!__traits(compiles, mat4(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3)));
     }
 
-    static if(rows == cols) {
+    static if(rows == cols)
+	{
         /// Makes the current matrix an identity matrix.
-        void make_identity() {
+        void makeIdentity()
+		{
             clear(0);
-            foreach(r; TupleRange!(0, rows)) {
+            foreach(r; TupleRange!(0, rows))
+			{
                 matrix[r][r] = 1;
             }
         }
 
         /// Returns a identity matrix.
-        static @property Matrix identity() {
+        static @property Matrix identity()
+		{
             Matrix ret;
             ret.clear(0);
 
-            foreach(r; TupleRange!(0, rows)) {
+            foreach(r; TupleRange!(0, rows))
+			{
                 ret.matrix[r][r] = 1;
             }
 
@@ -1067,15 +1101,17 @@ if((rows_ > 0) && (cols_ > 0))
         }
 
         /// Transposes the current matrix;
-        void transpose() {
+        void transpose()
+		{
             matrix = transposed().matrix;
         }
 
-        unittest {
+        unittest
+		{
             mat2 m2 = mat2(1.0f);
             m2.transpose();
             assert(m2.matrix == mat2(1.0f).matrix);
-            m2.make_identity();
+            m2.makeIdentity();
             assert(m2.matrix == [[1.0f, 0.0f],
                                  [0.0f, 1.0f]]);
             m2.transpose();
@@ -1094,7 +1130,7 @@ if((rows_ > 0) && (cols_ > 0))
             mat4 m4 = mat4(2.0f);
             m4.transpose();
             assert(m4.matrix == mat4(2.0f).matrix);
-            m4.make_identity();
+            m4.makeIdentity();
             assert(m4.matrix == [[1.0f, 0.0f, 0.0f, 0.0f],
                                  [0.0f, 1.0f, 0.0f, 0.0f],
                                  [0.0f, 0.0f, 1.0f, 0.0f],
@@ -1105,11 +1141,14 @@ if((rows_ > 0) && (cols_ > 0))
     }
 
     /// Returns a transposed copy of the matrix.
-    @property Matrix!(mt, cols, rows) transposed() const {
+    @property Matrix!(mt, cols, rows) transposed() const
+	{
         typeof(return) ret;
 
-        foreach(r; TupleRange!(0, rows)) {
-            foreach(c; TupleRange!(0, cols)) {
+        foreach(r; TupleRange!(0, rows))
+		{
+            foreach(c; TupleRange!(0, cols))
+			{
                 ret.matrix[c][r] = matrix[r][c];
             }
         }
@@ -1120,18 +1159,24 @@ if((rows_ > 0) && (cols_ > 0))
     // transposed already tested in last unittest
 
 
-    static if((rows == 2) && (cols == 2)) {
-        @property mt det() const {
+    static if((rows == 2) && (cols == 2))
+	{
+        @property mt det() const
+		{
             return (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]);
         }
 
-        private Matrix invert(ref Matrix mat) const {
-            static if(isFloatingPoint!mt && rmul) {
+        private Matrix invert(ref Matrix mat) const
+		{
+            static if(isFloatingPoint!mt && rmul)
+			{
                 mt d = 1 / det;
 
                 mat.matrix = [[matrix[1][1]*d, -matrix[0][1]*d],
                               [-matrix[1][0]*d, matrix[0][0]*d]];
-            } else {
+            }
+			else
+			{
                 mt d = det;
 
                 mat.matrix = [[matrix[1][1]/d, -matrix[0][1]/d],
@@ -1141,7 +1186,8 @@ if((rows_ > 0) && (cols_ > 0))
             return mat;
         }
 
-        static Matrix scaling(mt x, mt y) {
+        static Matrix scaling(mt x, mt y)
+		{
             Matrix ret = Matrix.identity;
 
             ret.matrix[0][0] = x;
@@ -1150,18 +1196,23 @@ if((rows_ > 0) && (cols_ > 0))
             return ret;
         }
 
-        Matrix scale(mt x, mt y) {
+        Matrix scale(mt x, mt y)
+		{
             this = Matrix.scaling(x, y) * this;
             return this;
         }
 
-        unittest {
+        unittest
+		{
             assert(mat2.scaling(3, 3).matrix == mat2.identity.scale(3, 3).matrix);
             assert(mat2.scaling(3, 3).matrix == [[3.0f, 0.0f], [0.0f, 3.0f]]);
         }
 
-    } else static if((rows == 3) && (cols == 3)) {
-        @property mt det() const {
+    }
+	else static if((rows == 3) && (cols == 3))
+	{
+        @property mt det() const
+		{
             return (matrix[0][0] * matrix[1][1] * matrix[2][2]
                   + matrix[0][1] * matrix[1][2] * matrix[2][0]
                   + matrix[0][2] * matrix[1][0] * matrix[2][1]
@@ -1170,11 +1221,15 @@ if((rows_ > 0) && (cols_ > 0))
                   - matrix[0][0] * matrix[1][2] * matrix[2][1]);
         }
 
-        private Matrix invert(ref Matrix mat) const {
-            static if(isFloatingPoint!mt && rmul) {
+        private Matrix invert(ref Matrix mat) const
+		{
+            static if(isFloatingPoint!mt && rmul)
+			{
                 mt d = 1 / det;
                 enum op = "*";
-            } else {
+            }
+			else
+			{
                 mt d = det;
                 enum op = "/";
             }
@@ -1193,9 +1248,12 @@ if((rows_ > 0) && (cols_ > 0))
 
             return mat;
         }
-    } else static if((rows == 4) && (cols == 4)) {
+    }
+	else static if((rows == 4) && (cols == 4))
+	{
         /// Returns the determinant of the current matrix (2x2, 3x3 and 4x4 matrices).
-        @property mt det() const {
+        @property mt det() const
+		{
             return (matrix[0][3] * matrix[1][2] * matrix[2][1] * matrix[3][0] - matrix[0][2] * matrix[1][3] * matrix[2][1] * matrix[3][0]
                   - matrix[0][3] * matrix[1][1] * matrix[2][2] * matrix[3][0] + matrix[0][1] * matrix[1][3] * matrix[2][2] * matrix[3][0]
                   + matrix[0][2] * matrix[1][1] * matrix[2][3] * matrix[3][0] - matrix[0][1] * matrix[1][2] * matrix[2][3] * matrix[3][0]
@@ -1210,11 +1268,15 @@ if((rows_ > 0) && (cols_ > 0))
                   - matrix[0][1] * matrix[1][0] * matrix[2][2] * matrix[3][3] + matrix[0][0] * matrix[1][1] * matrix[2][2] * matrix[3][3]);
         }
 
-        private Matrix invert(ref Matrix mat) const {
-            static if(isFloatingPoint!mt && rmul) {
+        private Matrix invert(ref Matrix mat) const
+		{
+            static if(isFloatingPoint!mt && rmul)
+			{
                 mt d = 1 / det;
                 enum op = "*";
-            } else {
+            }
+			else
+			{
                 mt d = det;
                 enum op = "/";
             }
@@ -1262,100 +1324,113 @@ if((rows_ > 0) && (cols_ > 0))
         // (2) http://fly.cc.fer.hr/~unreal/theredbook/appendixg.html
         // (3) http://en.wikipedia.org/wiki/Orthographic_projection_(geometry)
 
-        static if(isFloatingPoint!mt) {
+        static if(isFloatingPoint!mt)
+		{
             static private mt[6] cperspective(mt width, mt height, mt fov, mt near, mt far)
-                in { assert(height != 0); }
-                body {
-                    mt aspect = width/height;
-                    mt top = near * tan(fov*(PI/360.0));
-                    mt bottom = -top;
-                    mt right = top * aspect;
-                    mt left = -right;
+            in
+			{
+				assert(height != 0);
+			}
+            body
+			{
+                mt aspect = width/height;
+                mt top = near * tan(fov*(PI/360.0));
+                mt bottom = -top;
+                mt right = top * aspect;
+                mt left = -right;
 
-                    return [left, right, bottom, top, near, far];
-                }
+                return [left, right, bottom, top, near, far];
+            }
 
             /// Returns a perspective matrix (4x4 and floating-point matrices only).
-            static Matrix perspective(mt width, mt height, mt fov, mt near, mt far) {
+            static Matrix perspective(mt width, mt height, mt fov, mt near, mt far)
+			{
                 mt[6] cdata = cperspective(width, height, fov, near, far);
                 return perspective(cdata[0], cdata[1], cdata[2], cdata[3], cdata[4], cdata[5]);
             }
 
             /// ditto
             static Matrix perspective(mt left, mt right, mt bottom, mt top, mt near, mt far)
-                in {
-                    assert(right-left != 0);
-                    assert(top-bottom != 0);
-                    assert(far-near != 0);
-                }
-                body {
-                    Matrix ret;
-                    ret.clear(0);
+            in
+			{
+                assert(right-left != 0);
+                assert(top-bottom != 0);
+                assert(far-near != 0);
+            }
+            body
+			{
+                Matrix ret;
+                ret.clear(0);
 
-                    ret.matrix[0][0] = (2*near)/(right-left);
-                    ret.matrix[0][2] = (right+left)/(right-left);
-                    ret.matrix[1][1] = (2*near)/(top-bottom);
-                    ret.matrix[1][2] = (top+bottom)/(top-bottom);
-                    ret.matrix[2][2] = -(far+near)/(far-near);
-                    ret.matrix[2][3] = -(2*far*near)/(far-near);
-                    ret.matrix[3][2] = -1;
+                ret.matrix[0][0] = (2*near)/(right-left);
+                ret.matrix[0][2] = (right+left)/(right-left);
+                ret.matrix[1][1] = (2*near)/(top-bottom);
+                ret.matrix[1][2] = (top+bottom)/(top-bottom);
+                ret.matrix[2][2] = -(far+near)/(far-near);
+                ret.matrix[2][3] = -(2*far*near)/(far-near);
+                ret.matrix[3][2] = -1;
 
-                    return ret;
-                }
+                return ret;
+            }
 
             /// Returns an inverse perspective matrix (4x4 and floating-point matrices only).
-            static Matrix perspective_inverse(mt width, mt height, mt fov, mt near, mt far) {
+            static Matrix perspectiveInverse(mt width, mt height, mt fov, mt near, mt far) {
                 mt[6] cdata = cperspective(width, height, fov, near, far);
-                return perspective_inverse(cdata[0], cdata[1], cdata[2], cdata[3], cdata[4], cdata[5]);
+                return perspectiveInverse(cdata[0], cdata[1], cdata[2], cdata[3], cdata[4], cdata[5]);
             }
 
             /// ditto
-            static Matrix perspective_inverse(mt left, mt right, mt bottom, mt top, mt near, mt far)
-                in {
-                    assert(near != 0);
-                    assert(far != 0);
-                }
-                body {
-                    Matrix ret;
-                    ret.clear(0);
+            static Matrix perspectiveInverse(mt left, mt right, mt bottom, mt top, mt near, mt far)
+            in
+			{
+                assert(near != 0);
+                assert(far != 0);
+            }
+            body
+			{
+                Matrix ret;
+                ret.clear(0);
 
-                    ret.matrix[0][0] = (right-left)/(2*near);
-                    ret.matrix[0][3] = (right+left)/(2*near);
-                    ret.matrix[1][1] = (top-bottom)/(2*near);
-                    ret.matrix[1][3] = (top+bottom)/(2*near);
-                    ret.matrix[2][3] = -1;
-                    ret.matrix[3][2] = -(far-near)/(2*far*near);
-                    ret.matrix[3][3] = (far+near)/(2*far*near);
+                ret.matrix[0][0] = (right-left)/(2*near);
+                ret.matrix[0][3] = (right+left)/(2*near);
+                ret.matrix[1][1] = (top-bottom)/(2*near);
+                ret.matrix[1][3] = (top+bottom)/(2*near);
+                ret.matrix[2][3] = -1;
+                ret.matrix[3][2] = -(far-near)/(2*far*near);
+                ret.matrix[3][3] = (far+near)/(2*far*near);
 
-                    return ret;
-                }
+                return ret;
+            }
 
             // (2) and (3) say this one is correct
             /// Returns an orthographic matrix (4x4 and floating-point matrices only).
             static Matrix orthographic(mt left, mt right, mt bottom, mt top, mt near, mt far)
-                in {
-                    assert(right-left != 0);
-                    assert(top-bottom != 0);
-                    assert(far-near != 0);
-                }
-                body {
-                    Matrix ret;
-                    ret.clear(0);
+            in
+			{
+                assert(right-left != 0);
+                assert(top-bottom != 0);
+                assert(far-near != 0);
+            }
+            body
+			{
+                Matrix ret;
+                ret.clear(0);
 
-                    ret.matrix[0][0] = 2/(right-left);
-                    ret.matrix[0][3] = -(right+left)/(right-left);
-                    ret.matrix[1][1] = 2/(top-bottom);
-                    ret.matrix[1][3] = -(top+bottom)/(top-bottom);
-                    ret.matrix[2][2] = -2/(far-near);
-                    ret.matrix[2][3] = -(far+near)/(far-near);
-                    ret.matrix[3][3] = 1;
+                ret.matrix[0][0] = 2/(right-left);
+                ret.matrix[0][3] = -(right+left)/(right-left);
+                ret.matrix[1][1] = 2/(top-bottom);
+                ret.matrix[1][3] = -(top+bottom)/(top-bottom);
+                ret.matrix[2][2] = -2/(far-near);
+                ret.matrix[2][3] = -(far+near)/(far-near);
+                ret.matrix[3][3] = 1;
 
-                    return ret;
-                }
+                return ret;
+            }
 
             // (1) and (2) say this one is correct
             /// Returns an inverse ortographic matrix (4x4 and floating-point matrices only).
-            static Matrix orthographic_inverse(mt left, mt right, mt bottom, mt top, mt near, mt far) {
+            static Matrix orthographicInverse(mt left, mt right, mt bottom, mt top, mt near, mt far)
+			{
                 Matrix ret;
                 ret.clear(0);
 
@@ -1371,7 +1446,8 @@ if((rows_ > 0) && (cols_ > 0))
             }
 
             /// Returns a look at matrix (4x4 and floating-point matrices only).
-            static Matrix look_at(Vector!(mt, 3) eye, Vector!(mt, 3) target, Vector!(mt, 3) up) {
+            static Matrix lookAt(Vector!(mt, 3) eye, Vector!(mt, 3) target, Vector!(mt, 3) up)
+			{
                 alias Vector!(mt, 3) vec3mt;
                 vec3mt look_dir = (target - eye).normalized;
                 vec3mt up_dir = up.normalized;
@@ -1391,7 +1467,8 @@ if((rows_ > 0) && (cols_ > 0))
                 return ret;
             }
 
-            unittest {
+            unittest
+			{
                 mt[6] cp = cperspective(600f, 900f, 60f, 1f, 100f);
                 assert(cp[4] == 1.0f);
                 assert(cp[5] == 100.0f);
@@ -1410,7 +1487,7 @@ if((rows_ > 0) && (cols_ > 0))
                 assert((m4p[2][3] < -2.020201) && (m4p[2][3] > -2.020203));
                 assert((m4p[3][2] < -0.9f) && (m4p[3][2] > -1.1f));
 
-                float[4][4] m4pi = mat4.perspective_inverse(600f, 900f, 60.0, 1.0, 100.0).matrix;
+                float[4][4] m4pi = mat4.perspectiveInverse(600f, 900f, 60.0, 1.0, 100.0).matrix;
                 assert((m4pi[0][0] < 0.384901) && (m4pi[0][0] > 0.384899));
                 assert(m4pi[0][3] == 0.0f);
                 assert((m4pi[1][1] < 0.577351) && (m4pi[1][1] > 0.577349));
@@ -1426,20 +1503,22 @@ if((rows_ > 0) && (cols_ > 0))
                                [0.0f, 0.0f, -1.0f, 0.0f],
                                [0.0f, 0.0f, 0.0f, 1.0f]]);
 
-                float[4][4] m4oi = mat4.orthographic_inverse(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f).matrix;
+                float[4][4] m4oi = mat4.orthographicInverse(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f).matrix;
                 assert(m4oi == [[1.0f, 0.0f, 0.0f, 0.0f],
                                 [0.0f, 1.0f, 0.0f, 0.0f],
                                 [0.0f, 0.0f, -1.0f, 0.0f],
                                 [0.0f, 0.0f, 0.0f, 1.0f]]);
 
-                //TODO: look_at tests
+                //TODO: lookAt tests
             }
         }
     }
 
-    static if((rows == cols) && (rows >= 3) && (rows <= 4)) {
+    static if((rows == cols) && (rows >= 3) && (rows <= 4))
+	{
         /// Returns a translation matrix (3x3 and 4x4 matrices).
-        static Matrix translation(mt x, mt y, mt z) {
+        static Matrix translation(mt x, mt y, mt z)
+		{
             Matrix ret = Matrix.identity;
 
             ret.matrix[0][cols-1] = x;
@@ -1450,13 +1529,15 @@ if((rows_ > 0) && (cols_ > 0))
         }
 
         /// Applys a translation on the current matrix and returns $(I this) (3x3 and 4x4 matrices).
-        Matrix translate(mt x, mt y, mt z) {
+        Matrix translate(mt x, mt y, mt z)
+		{
             this = Matrix.translation(x, y, z) * this;
             return this;
         }
 
         /// Returns a scaling matrix (3x3 and 4x4 matrices);
-        static Matrix scaling(mt x, mt y, mt z) {
+        static Matrix scaling(mt x, mt y, mt z)
+		{
             Matrix ret = Matrix.identity;
 
             ret.matrix[0][0] = x;
@@ -1467,12 +1548,14 @@ if((rows_ > 0) && (cols_ > 0))
         }
 
         /// Applys a scale to the current matrix and returns $(I this) (3x3 and 4x4 matrices).
-        Matrix scale(mt x, mt y, mt z) {
+        Matrix scale(mt x, mt y, mt z)
+		{
             this = Matrix.scaling(x, y, z) * this;
             return this;
         }
 
-        unittest {
+        unittest
+		{
             mat3 m3 = mat3(1.0f);
             assert(m3.translation(1.0f, 2.0f, 3.0f).matrix == mat3.translation(1.0f, 2.0f, 3.0f).matrix);
             assert(mat3.translation(1.0f, 2.0f, 3.0f).matrix == [[1.0f, 0.0f, 1.0f],
@@ -1506,308 +1589,162 @@ if((rows_ > 0) && (cols_ > 0))
     }
 
 
-    static if((rows == cols) && (rows >= 3)) {
-        static if(isFloatingPoint!mt) {
-            /// Returns an identity matrix with an applied rotate_axis around an arbitrary axis (nxn matrices, n >= 3).
-            static Matrix rotation(real alpha, Vector!(mt, 3) axis) {
-                Matrix mult = Matrix.identity;
+    static if((rows == cols) && (rows >= 3) && isFloatingPoint!mt)
+	{
+        /// Returns an identity matrix with an applied rotate_axis around an arbitrary axis (nxn matrices, n >= 3).
+        static Matrix rotation(real alpha, Vector!(mt, 3) axis)
+		{
+            Matrix mult = Matrix.identity;
 
-                if(axis.magnitude != 1) {
-                    axis.normalize();
-                }
-
-                real cosa = cos(alpha);
-                real sina = sin(alpha);
-
-                Vector!(mt, 3) temp = (1 - cosa)*axis;
-
-                mult.matrix[0][0] = to!mt(cosa + temp.x * axis.x);
-                mult.matrix[0][1] = to!mt(       temp.x * axis.y + sina * axis.z);
-                mult.matrix[0][2] = to!mt(       temp.x * axis.z - sina * axis.y);
-                mult.matrix[1][0] = to!mt(       temp.y * axis.x - sina * axis.z);
-                mult.matrix[1][1] = to!mt(cosa + temp.y * axis.y);
-                mult.matrix[1][2] = to!mt(       temp.y * axis.z + sina * axis.x);
-                mult.matrix[2][0] = to!mt(       temp.z * axis.x + sina * axis.y);
-                mult.matrix[2][1] = to!mt(       temp.z * axis.y - sina * axis.x);
-                mult.matrix[2][2] = to!mt(cosa + temp.z * axis.z);
-
-                return mult;
+            if(axis.magnitude != 1)
+			{
+                axis.normalize();
             }
 
-            /// ditto
-            static Matrix rotation(real alpha, mt x, mt y, mt z) {
-                return Matrix.rotation(alpha, Vector!(mt, 3)(x, y, z));
-            }
+            real cosa = cos(alpha);
+            real sina = sin(alpha);
 
-            /// Returns an identity matrix with an applied rotation around the x-axis (nxn matrices, n >= 3).
-            static Matrix xrotation(real alpha) {
-                Matrix mult = Matrix.identity;
+            Vector!(mt, 3) temp = (1 - cosa)*axis;
 
-                mt cosamt = to!mt(cos(alpha));
-                mt sinamt = to!mt(sin(alpha));
+            mult.matrix[0][0] = to!mt(cosa + temp.x * axis.x);
+            mult.matrix[0][1] = to!mt(       temp.x * axis.y + sina * axis.z);
+            mult.matrix[0][2] = to!mt(       temp.x * axis.z - sina * axis.y);
+            mult.matrix[1][0] = to!mt(       temp.y * axis.x - sina * axis.z);
+            mult.matrix[1][1] = to!mt(cosa + temp.y * axis.y);
+            mult.matrix[1][2] = to!mt(       temp.y * axis.z + sina * axis.x);
+            mult.matrix[2][0] = to!mt(       temp.z * axis.x + sina * axis.y);
+            mult.matrix[2][1] = to!mt(       temp.z * axis.y - sina * axis.x);
+            mult.matrix[2][2] = to!mt(cosa + temp.z * axis.z);
 
-                mult.matrix[1][1] = cosamt;
-                mult.matrix[1][2] = -sinamt;
-                mult.matrix[2][1] = sinamt;
-                mult.matrix[2][2] = cosamt;
-
-                return mult;
-            }
-
-            /// Returns an identity matrix with an applied rotation around the y-axis (nxn matrices, n >= 3).
-            static Matrix yrotation(real alpha) {
-                Matrix mult = Matrix.identity;
-
-                mt cosamt = to!mt(cos(alpha));
-                mt sinamt = to!mt(sin(alpha));
-
-                mult.matrix[0][0] = cosamt;
-                mult.matrix[0][2] = sinamt;
-                mult.matrix[2][0] = -sinamt;
-                mult.matrix[2][2] = cosamt;
-
-                return mult;
-            }
-
-            /// Returns an identity matrix with an applied rotation around the z-axis (nxn matrices, n >= 3).
-            static Matrix zrotation(real alpha) {
-                Matrix mult = Matrix.identity;
-
-                mt cosamt = to!mt(cos(alpha));
-                mt sinamt = to!mt(sin(alpha));
-
-                mult.matrix[0][0] = cosamt;
-                mult.matrix[0][1] = -sinamt;
-                mult.matrix[1][0] = sinamt;
-                mult.matrix[1][1] = cosamt;
-
-                return mult;
-            }
-
-            Matrix rotate(real alpha, Vector!(mt, 3) axis) {
-                this = rotation(alpha, axis) * this;
-                return this;
-            }
-
-            /// Rotates the current matrix around the x-axis and returns $(I this) (nxn matrices, n >= 3).
-            Matrix rotatex(real alpha) {
-                this = xrotation(alpha) * this;
-                return this;
-            }
-
-            /// Rotates the current matrix around the y-axis and returns $(I this) (nxn matrices, n >= 3).
-            Matrix rotatey(real alpha) {
-                this = yrotation(alpha) * this;
-                return this;
-            }
-
-            /// Rotates the current matrix around the z-axis and returns $(I this) (nxn matrices, n >= 3).
-            Matrix rotatez(real alpha) {
-                this = zrotation(alpha) * this;
-                return this;
-            }
-
-            unittest {
-                assert(mat4.xrotation(0).matrix == [[1.0f, 0.0f, 0.0f, 0.0f],
-                                                    [0.0f, 1.0f, -0.0f, 0.0f],
-                                                    [0.0f, 0.0f, 1.0f, 0.0f],
-                                                    [0.0f, 0.0f, 0.0f, 1.0f]]);
-                assert(mat4.yrotation(0).matrix == [[1.0f, 0.0f, 0.0f, 0.0f],
-                                                    [0.0f, 1.0f, 0.0f, 0.0f],
-                                                    [0.0f, 0.0f, 1.0f, 0.0f],
-                                                    [0.0f, 0.0f, 0.0f, 1.0f]]);
-                assert(mat4.zrotation(0).matrix == [[1.0f, -0.0f, 0.0f, 0.0f],
-                                                    [0.0f, 1.0f, 0.0f, 0.0f],
-                                                    [0.0f, 0.0f, 1.0f, 0.0f],
-                                                    [0.0f, 0.0f, 0.0f, 1.0f]]);
-                mat4 xro = mat4.identity;
-                xro.rotatex(0);
-                assert(mat4.xrotation(0).matrix == xro.matrix);
-                assert(xro.matrix == mat4.identity.rotatex(0).matrix);
-                assert(xro.matrix == mat4.rotation(0, vec3(1.0f, 0.0f, 0.0f)).matrix);
-                mat4 yro = mat4.identity;
-                yro.rotatey(0);
-                assert(mat4.yrotation(0).matrix == yro.matrix);
-                assert(yro.matrix == mat4.identity.rotatey(0).matrix);
-                assert(yro.matrix == mat4.rotation(0, vec3(0.0f, 1.0f, 0.0f)).matrix);
-                mat4 zro = mat4.identity;
-                xro.rotatez(0);
-                assert(mat4.zrotation(0).matrix == zro.matrix);
-                assert(zro.matrix == mat4.identity.rotatez(0).matrix);
-                assert(zro.matrix == mat4.rotation(0, vec3(0.0f, 0.0f, 1.0f)).matrix);
-            }
-        } // isFloatingPoint
-
-
-        /// Sets the translation of the matrix (nxn matrices, n >= 3).
-        void set_translation(mt[] values...) // intended to be a property
-            in { assert(values.length >= (rows-1)); }
-            body {
-                foreach(r; TupleRange!(0, rows-1)) {
-                    matrix[r][rows-1] = values[r];
-                }
-            }
-
-        /// Copyies the translation from mat to the current matrix (nxn matrices, n >= 3).
-        void set_translation(Matrix mat) {
-            foreach(r; TupleRange!(0, rows-1)) {
-                matrix[r][rows-1] = mat.matrix[r][rows-1];
-            }
+            return mult;
         }
 
-        /// Returns an identity matrix with the current translation applied (nxn matrices, n >= 3)..
-        Matrix get_translation() {
-            Matrix ret = Matrix.identity;
-
-            foreach(r; TupleRange!(0, rows-1)) {
-                ret.matrix[r][rows-1] = matrix[r][rows-1];
-            }
-
-            return ret;
+        /// ditto
+        static Matrix rotation(real alpha, mt x, mt y, mt z)
+		{
+            return Matrix.rotation(alpha, Vector!(mt, 3)(x, y, z));
         }
 
-        unittest {
-            mat3 m3 = mat3(0.0f, 1.0f, 2.0f,
-                           3.0f, 4.0f, 5.0f,
-                           6.0f, 7.0f, 1.0f);
-            assert(m3.get_translation().matrix == [[1.0f, 0.0f, 2.0f], [0.0f, 1.0f, 5.0f], [0.0f, 0.0f, 1.0f]]);
-            m3.set_translation(mat3.identity);
-            assert(mat3.identity.matrix == m3.get_translation().matrix);
-            m3.set_translation([2.0f, 5.0f]);
-            assert(m3.get_translation().matrix == [[1.0f, 0.0f, 2.0f], [0.0f, 1.0f, 5.0f], [0.0f, 0.0f, 1.0f]]);
-            assert(mat3.identity.matrix == mat3.identity.get_translation().matrix);
+        /// Returns an identity matrix with an applied rotation around the x-axis (nxn matrices, n >= 3).
+        static Matrix xRotation(real alpha)
+		{
+            Matrix mult = Matrix.identity;
 
-            mat4 m4 = mat4(0.0f, 1.0f, 2.0f, 3.0f,
-                           4.0f, 5.0f, 6.0f, 7.0f,
-                           8.0f, 9.0f, 10.0f, 11.0f,
-                           12.0f, 13.0f, 14.0f, 1.0f);
-            assert(m4.get_translation().matrix == [[1.0f, 0.0f, 0.0f, 3.0f],
-                                       [0.0f, 1.0f, 0.0f, 7.0f],
-                                       [0.0f, 0.0f, 1.0f, 11.0f],
-                                       [0.0f, 0.0f, 0.0f, 1.0f]]);
-            m4.set_translation(mat4.identity);
-            assert(mat4.identity.matrix == m4.get_translation().matrix);
-            m4.set_translation([3.0f, 7.0f, 11.0f]);
-            assert(m4.get_translation().matrix == [[1.0f, 0.0f, 0.0f, 3.0f],
-                                       [0.0f, 1.0f, 0.0f, 7.0f],
-                                       [0.0f, 0.0f, 1.0f, 11.0f],
-                                       [0.0f, 0.0f, 0.0f, 1.0f]]);
-            assert(mat4.identity.matrix == mat4.identity.get_translation().matrix);
+            mt cosamt = to!mt(cos(alpha));
+            mt sinamt = to!mt(sin(alpha));
+
+            mult.matrix[1][1] = cosamt;
+            mult.matrix[1][2] = -sinamt;
+            mult.matrix[2][1] = sinamt;
+            mult.matrix[2][2] = cosamt;
+
+            return mult;
         }
 
-        /// Sets the scale of the matrix (nxn matrices, n >= 3).
-        void set_scale(mt[] values...)
-            in { assert(values.length >= (rows-1)); }
-            body {
-                foreach(r; TupleRange!(0, rows-1)) {
-                    matrix[r][r] = values[r];
-                }
-            }
+        /// Returns an identity matrix with an applied rotation around the y-axis (nxn matrices, n >= 3).
+        static Matrix yRotation(real alpha)
+		{
+            Matrix mult = Matrix.identity;
 
-        /// Copyies the scale from mat to the current matrix (nxn matrices, n >= 3).
-        void set_scale(Matrix mat) {
-            foreach(r; TupleRange!(0, rows-1)) {
-                matrix[r][r] = mat.matrix[r][r];
-            }
+            mt cosamt = to!mt(cos(alpha));
+            mt sinamt = to!mt(sin(alpha));
+
+            mult.matrix[0][0] = cosamt;
+            mult.matrix[0][2] = sinamt;
+            mult.matrix[2][0] = -sinamt;
+            mult.matrix[2][2] = cosamt;
+
+            return mult;
         }
 
-        /// Returns an identity matrix with the current scale applied (nxn matrices, n >= 3).
-        Matrix get_scale() {
-            Matrix ret = Matrix.identity;
+        /// Returns an identity matrix with an applied rotation around the z-axis (nxn matrices, n >= 3).
+        static Matrix zRotation(real alpha)
+		{
+            Matrix mult = Matrix.identity;
 
-            foreach(r; TupleRange!(0, rows-1)) {
-                ret.matrix[r][r] = matrix[r][r];
-            }
+            mt cosamt = to!mt(cos(alpha));
+            mt sinamt = to!mt(sin(alpha));
 
-            return ret;
+            mult.matrix[0][0] = cosamt;
+            mult.matrix[0][1] = -sinamt;
+            mult.matrix[1][0] = sinamt;
+            mult.matrix[1][1] = cosamt;
+
+            return mult;
         }
 
-        unittest {
-            mat3 m3 = mat3(0.0f, 1.0f, 2.0f,
-                           3.0f, 4.0f, 5.0f,
-                           6.0f, 7.0f, 1.0f);
-            assert(m3.get_scale().matrix == [[0.0f, 0.0f, 0.0f], [0.0f, 4.0f, 0.0f], [0.0f, 0.0f, 1.0f]]);
-            m3.set_scale(mat3.identity);
-            assert(mat3.identity.matrix == m3.get_scale().matrix);
-            m3.set_scale([0.0f, 4.0f]);
-            assert(m3.get_scale().matrix == [[0.0f, 0.0f, 0.0f], [0.0f, 4.0f, 0.0f], [0.0f, 0.0f, 1.0f]]);
-            assert(mat3.identity.matrix == mat3.identity.get_scale().matrix);
-
-            mat4 m4 = mat4(0.0f, 1.0f, 2.0f, 3.0f,
-                           4.0f, 5.0f, 6.0f, 7.0f,
-                           8.0f, 9.0f, 10.0f, 11.0f,
-                           12.0f, 13.0f, 14.0f, 1.0f);
-            assert(m4.get_scale().matrix == [[0.0f, 0.0f, 0.0f, 0.0f],
-                                       [0.0f, 5.0f, 0.0f, 0.0f],
-                                       [0.0f, 0.0f, 10.0f, 0.0f],
-                                       [0.0f, 0.0f, 0.0f, 1.0f]]);
-            m4.set_scale(mat4.identity);
-            assert(mat4.identity.matrix == m4.get_scale().matrix);
-            m4.set_scale([0.0f, 5.0f, 10.0f]);
-            assert(m4.get_scale().matrix == [[0.0f, 0.0f, 0.0f, 0.0f],
-                                       [0.0f, 5.0f, 0.0f, 0.0f],
-                                       [0.0f, 0.0f, 10.0f, 0.0f],
-                                       [0.0f, 0.0f, 0.0f, 1.0f]]);
-            assert(mat4.identity.matrix == mat4.identity.get_scale().matrix);
+        Matrix rotate(real alpha, Vector!(mt, 3) axis)
+		{
+            this = rotation(alpha, axis) * this;
+            return this;
         }
 
-        /// Copies rot into the upper left corner, the translation (nxn matrices, n >= 3).
-        void set_rotation(Matrix!(mt, 3, 3) rot) {
-            foreach(r; TupleRange!(0, 3)) {
-                foreach(c; TupleRange!(0, 3)) {
-                    matrix[r][c] = rot[r][c];
-                }
-            }
+        /// Rotates the current matrix around the x-axis and returns $(I this) (nxn matrices, n >= 3).
+        Matrix rotateX(real alpha)
+		{
+            this = xrotation(alpha) * this;
+            return this;
         }
 
-        /// Returns an identity matrix with the current rotation applied (nxn matrices, n >= 3).
-        Matrix!(mt, 3, 3) get_rotation() {
-            Matrix!(mt, 3, 3) ret = Matrix!(mt, 3, 3).identity;
-
-            foreach(r; TupleRange!(0, 3)) {
-                foreach(c; TupleRange!(0, 3)) {
-                    ret.matrix[r][c] = matrix[r][c];
-                }
-            }
-
-            return ret;
+        /// Rotates the current matrix around the y-axis and returns $(I this) (nxn matrices, n >= 3).
+        Matrix rotateY(real alpha)
+		{
+            this = yrotation(alpha) * this;
+            return this;
         }
 
-        unittest {
-            mat3 m3 = mat3(0.0f, 1.0f, 2.0f,
-                           3.0f, 4.0f, 5.0f,
-                           6.0f, 7.0f, 1.0f);
-            assert(m3.get_rotation().matrix == [[0.0f, 1.0f, 2.0f], [3.0f, 4.0f, 5.0f], [6.0f, 7.0f, 1.0f]]);
-            m3.set_rotation(mat3.identity);
-            assert(mat3.identity.matrix == m3.get_rotation().matrix);
-            m3.set_rotation(mat3(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 1.0f));
-            assert(m3.get_rotation().matrix == [[0.0f, 1.0f, 2.0f], [3.0f, 4.0f, 5.0f], [6.0f, 7.0f, 1.0f]]);
-            assert(mat3.identity.matrix == mat3.identity.get_rotation().matrix);
-
-            mat4 m4 = mat4(0.0f, 1.0f, 2.0f, 3.0f,
-                           4.0f, 5.0f, 6.0f, 7.0f,
-                           8.0f, 9.0f, 10.0f, 11.0f,
-                           12.0f, 13.0f, 14.0f, 1.0f);
-            assert(m4.get_rotation().matrix == [[0.0f, 1.0f, 2.0f], [4.0f, 5.0f, 6.0f], [8.0f, 9.0f, 10.0f]]);
-            m4.set_rotation(mat3.identity);
-            assert(mat3.identity.matrix == m4.get_rotation().matrix);
-            m4.set_rotation(mat3(0.0f, 1.0f, 2.0f, 4.0f, 5.0f, 6.0f, 8.0f, 9.0f, 10.0f));
-            assert(m4.get_rotation().matrix == [[0.0f, 1.0f, 2.0f], [4.0f, 5.0f, 6.0f], [8.0f, 9.0f, 10.0f]]);
-            assert(mat3.identity.matrix == mat4.identity.get_rotation().matrix);
+        /// Rotates the current matrix around the z-axis and returns $(I this) (nxn matrices, n >= 3).
+        Matrix rotateZ(real alpha)
+		{
+            this = zrotation(alpha) * this;
+            return this;
         }
 
+        unittest
+		{
+            assert(mat4.xrotation(0).matrix == [[1.0f, 0.0f, 0.0f, 0.0f],
+                                                [0.0f, 1.0f, -0.0f, 0.0f],
+                                                [0.0f, 0.0f, 1.0f, 0.0f],
+                                                [0.0f, 0.0f, 0.0f, 1.0f]]);
+            assert(mat4.yrotation(0).matrix == [[1.0f, 0.0f, 0.0f, 0.0f],
+                                                [0.0f, 1.0f, 0.0f, 0.0f],
+                                                [0.0f, 0.0f, 1.0f, 0.0f],
+                                                [0.0f, 0.0f, 0.0f, 1.0f]]);
+            assert(mat4.zrotation(0).matrix == [[1.0f, -0.0f, 0.0f, 0.0f],
+                                                [0.0f, 1.0f, 0.0f, 0.0f],
+                                                [0.0f, 0.0f, 1.0f, 0.0f],
+                                                [0.0f, 0.0f, 0.0f, 1.0f]]);
+            mat4 xro = mat4.identity;
+            xro.rotatex(0);
+            assert(mat4.xrotation(0).matrix == xro.matrix);
+            assert(xro.matrix == mat4.identity.rotatex(0).matrix);
+            assert(xro.matrix == mat4.rotation(0, vec3(1.0f, 0.0f, 0.0f)).matrix);
+            mat4 yro = mat4.identity;
+            yro.rotatey(0);
+            assert(mat4.yrotation(0).matrix == yro.matrix);
+            assert(yro.matrix == mat4.identity.rotatey(0).matrix);
+            assert(yro.matrix == mat4.rotation(0, vec3(0.0f, 1.0f, 0.0f)).matrix);
+            mat4 zro = mat4.identity;
+            xro.rotatez(0);
+            assert(mat4.zrotation(0).matrix == zro.matrix);
+            assert(zro.matrix == mat4.identity.rotatez(0).matrix);
+            assert(zro.matrix == mat4.rotation(0, vec3(0.0f, 0.0f, 1.0f)).matrix);
+        }
     }
 
-    static if((rows == cols) && (rows >= 2) && (rows <= 4)) {
+    static if((rows == cols) && (rows >= 2) && (rows <= 4))
+	{
         /// Returns an inverted copy of the current matrix (nxn matrices, 2 >= n <= 4).
-        @property Matrix inverse() const {
+        @property Matrix inverse() const
+		{
             Matrix mat;
             invert(mat);
             return mat;
         }
 
         /// Inverts the current matrix (nxn matrices, 2 >= n <= 4).
-        void invert() {
+        void invert()
+		{
             // workaround Issue #11238
             // uses a temporary instead of invert(this)
             Matrix temp;
@@ -1816,7 +1753,8 @@ if((rows_ > 0) && (cols_ > 0))
         }
     }
 
-    unittest {
+    unittest
+	{
         mat2 m2 = mat2(1.0f, 2.0f, vec2(3.0f, 4.0f));
         assert(m2.det == -2.0f);
         assert(m2.inverse.matrix == [[-2.0f, 1.0f], [1.5f, -0.5f]]);
@@ -1840,30 +1778,41 @@ if((rows_ > 0) && (cols_ > 0))
                                      [-4.5f, -5.5f, 8.0f, -7.5f]]);
     }
 
-    private void mms(mt inp, ref Matrix mat) const { // mat * scalar
-        for(int r = 0; r < rows; r++) {
-            for(int c = 0; c < cols; c++) {
+    private void mms(mt inp, ref Matrix mat) const
+	{ // mat * scalar
+        for(int r = 0; r < rows; r++)
+		{
+            for(int c = 0; c < cols; c++)
+			{
                 mat.matrix[r][c] = matrix[r][c] * inp;
             }
         }
     }
 
-    private void masm(string op)(Matrix inp, ref Matrix mat) const { // mat + or - mat
-        foreach(r; TupleRange!(0, rows)) {
-            foreach(c; TupleRange!(0, cols)) {
+    private void masm(string op)(Matrix inp, ref Matrix mat) const
+	{ // mat + or - mat
+        foreach(r; TupleRange!(0, rows))
+		{
+            foreach(c; TupleRange!(0, cols))
+			{
                 mat.matrix[r][c] = mixin("inp.matrix[r][c]" ~ op ~ "matrix[r][c]");
             }
         }
     }
 
-    Matrix!(mt, rows, T.cols) opBinary(string op : "*", T)(T inp) const if(isCompatibleMatrix!T && (T.rows == cols)) {
+    Matrix!(mt, rows, T.cols) opBinary(string op : "*", T)(T inp) const
+	if(isCompatibleMatrix!T && (T.rows == cols))
+	{
         Matrix!(mt, rows, T.cols) ret;
 
-        foreach(r; TupleRange!(0, rows)) {
-            foreach(c; TupleRange!(0, T.cols)) {
+        foreach(r; TupleRange!(0, rows))
+		{
+            foreach(c; TupleRange!(0, T.cols))
+			{
                 ret.matrix[r][c] = 0;
 
-                foreach(c2; TupleRange!(0, cols)) {
+                foreach(c2; TupleRange!(0, cols))
+				{
                     ret.matrix[r][c] += matrix[r][c2] * inp.matrix[c2][c];
                 }
             }
@@ -1872,12 +1821,15 @@ if((rows_ > 0) && (cols_ > 0))
         return ret;
     }
 
-    Vector!(mt, rows) opBinary(string op : "*", T : Vector!(mt, cols))(T inp) const {
+    Vector!(mt, rows) opBinary(string op : "*", T : Vector!(mt, cols))(T inp) const
+	{
         Vector!(mt, rows) ret;
         ret.clear(0);
 
-        foreach(c; TupleRange!(0, cols)) {
-            foreach(r; TupleRange!(0, rows)) {
+        foreach(c; TupleRange!(0, cols))
+		{
+            foreach(r; TupleRange!(0, rows))
+			{
                 ret.vector[r] += matrix[r][c] * inp.vector[c];
             }
         }
@@ -1885,31 +1837,37 @@ if((rows_ > 0) && (cols_ > 0))
         return ret;
     }
 
-    Matrix opBinary(string op : "*")(mt inp) const {
+    Matrix opBinary(string op : "*")(mt inp) const
+	{
         Matrix ret;
         mms(inp, ret);
         return ret;
     }
 
-    Matrix opBinaryRight(string op : "*")(mt inp) const {
+    Matrix opBinaryRight(string op : "*")(mt inp) const
+	{
         return this.opBinary!(op)(inp);
     }
 
-    Matrix opBinary(string op)(Matrix inp) const if((op == "+") || (op == "-")) {
+    Matrix opBinary(string op)(Matrix inp) const if((op == "+") || (op == "-"))
+	{
         Matrix ret;
         masm!(op)(inp, ret);
         return ret;
     }
 
-    void opOpAssign(string op : "*")(mt inp) {
+    void opOpAssign(string op : "*")(mt inp)
+	{
         mms(inp, this);
     }
 
-    void opOpAssign(string op)(Matrix inp) if((op == "+") || (op == "-")) {
+    void opOpAssign(string op)(Matrix inp) if((op == "+") || (op == "-"))
+	{
         masm!(op)(inp, this);
     }
 
-    unittest {
+    unittest
+	{
         mat2 m2 = mat2(1.0f, 2.0f, 3.0f, 4.0f);
         vec2 v2 = vec2(2.0f, 2.0f);
         assert((m2*2).matrix == [[2.0f, 4.0f], [6.0f, 8.0f]]);
@@ -1945,13 +1903,13 @@ if((rows_ > 0) && (cols_ > 0))
         //TODO: tests for mat4, mat34
     }
 
-    // opEqual => "alias matrix this;"
-
-    bool opCast(T : bool)() const {
+    bool opCast(T : bool)() const
+	{
         return isFinite;
     }
 
-    unittest {
+    unittest
+	{
         assert(mat2(1.0f, 2.0f, 1.0f, 1.0f) == mat2(1.0f, 2.0f, 1.0f, 1.0f));
         assert(mat2(1.0f, 2.0f, 1.0f, 1.0f) != mat2(1.0f, 1.0f, 1.0f, 1.0f));
 
@@ -1976,7 +1934,8 @@ alias Matrix!(float, 3, 3) mat3;
 alias Matrix!(float, 3, 4) mat34;
 alias Matrix!(float, 4, 4) mat4;
 
-private unittest {
+private unittest
+{
     Matrix!(float,  1, 1) A = 1;
     Matrix!(double, 1, 1) B = 1;
     Matrix!(real,   1, 1) C = 1;
@@ -2104,7 +2063,7 @@ struct Quaternion(type) {
     }
 
     /// Makes the current quaternion an identity quaternion.
-    void make_identity() {
+    void makeIdentity() {
         w = 1;
         x = 0;
         y = 0;
@@ -2143,7 +2102,7 @@ struct Quaternion(type) {
         q1.invert();
         assert(q1.quaternion == [1.0f, -1.0f, -1.0f, -1.0f]);
 
-        q1.make_identity();
+        q1.makeIdentity();
         assert(q1.quaternion == q2.quaternion);
 
     }
