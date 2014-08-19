@@ -28,7 +28,7 @@ private {
     import std.algorithm : max, min, reduce;
 	import std.functional : binaryFun;
     import gl3n.math : clamp, PI, sqrt, sin, cos, acos, tan, asin, atan2, almostEqual;
-    import gl3n.util : is_vector, is_matrix, is_quaternion, TupleRange;
+    import gl3n.util : isVector, isMatrix, isQuaternion, TupleRange;
 }
 
 version(NoReciprocalMul) {
@@ -173,7 +173,7 @@ struct Vector(type, size_t dimension_) {
     }
 
     /// ditto
-    this(T)(T vec) if(is_vector!T && is(T.vt : vt) && (T.dimension >= dimension)) {
+    this(T)(T vec) if(isVector!T && is(T.vt : vt) && (T.dimension >= dimension)) {
         foreach(i; TupleRange!(0, dimension)) {
             vector[i] = vec.vector[i];
         }
@@ -496,7 +496,7 @@ struct Vector(type, size_t dimension_) {
         return ret;
     }
 
-    auto opBinaryRight(string op, T)(T inp) const if(!is_vector!T && !is_matrix!T && !is_quaternion!T) {
+    auto opBinaryRight(string op, T)(T inp) const if(!isVector!T && !isMatrix!T && !isQuaternion!T) {
         return this.opBinary!(op)(inp);
     }
 
@@ -601,7 +601,7 @@ struct Vector(type, size_t dimension_) {
         return vector == vec.vector;
     }
 
-    const bool opEquals(T)(const(T)[] array) if(!isArray!T && !is_vector!T) {
+    const bool opEquals(T)(const(T)[] array) if(!isArray!T && !isVector!T) {
         if(array.length != dimension) {
             return false;
         }
@@ -655,7 +655,7 @@ struct Vector(type, size_t dimension_) {
 }
 
 /// Calculates the product between two vectors.
-@safe pure nothrow T.vt dot(T)(const T veca, const T vecb) if(is_vector!T) {
+@safe pure nothrow T.vt dot(T)(const T veca, const T vecb) if(isVector!T) {
     T.vt temp = 0;
 
     foreach(index; TupleRange!(0, T.dimension)) {
@@ -665,7 +665,7 @@ struct Vector(type, size_t dimension_) {
     return temp;
 }
 
-@safe pure nothrow auto homogeneousPoint(T)(const T v) if(is_vector!T)
+@safe pure nothrow auto homogeneousPoint(T)(const T v) if(isVector!T)
 {
 	static if(T.dimension == 4)
 	{
@@ -680,7 +680,7 @@ struct Vector(type, size_t dimension_) {
 }
 
 @safe pure nothrow T componentOp(alias func, T)(T v1, T v2)
-if(is_vector!T)
+if(isVector!T)
 {
 	auto retVal = T.init;
 	foreach(i; 0..T.dimension)
@@ -694,14 +694,14 @@ auto componentMin(T)(T v1, T v2) { return componentOp!min(v1, v2); }
 auto componentMax(T)(T v1, T v2) { return componentOp!max(v1, v2); }
 
 /// Calculates the cross product of two 3-dimensional vectors.
-@safe pure nothrow T cross(T)(const T veca, const T vecb) if(is_vector!T && (T.dimension == 3)) {
+@safe pure nothrow T cross(T)(const T veca, const T vecb) if(isVector!T && (T.dimension == 3)) {
    return T(veca.y * vecb.z - vecb.y * veca.z,
             veca.z * vecb.x - vecb.z * veca.x,
             veca.x * vecb.y - vecb.x * veca.y);
 }
 
 /// Calculates the distance between two vectors.
-@safe pure nothrow T.vt distance(T)(const T veca, const T vecb) if(is_vector!T) {
+@safe pure nothrow T.vt distance(T)(const T veca, const T vecb) if(isVector!T) {
     return (veca - vecb).length;
 }
 
@@ -884,7 +884,7 @@ struct Matrix(type, int rows_, int cols_) if((rows_ > 0) && (cols_ > 0)) {
     }
 
     /// ditto
-    this(T)(T mat) if(is_matrix!T && (T.cols >= cols) && (T.rows >= rows)) {
+    this(T)(T mat) if(isMatrix!T && (T.cols >= cols) && (T.rows >= rows)) {
         foreach(r; TupleRange!(0, rows)) {
             foreach(c; TupleRange!(0, cols)) {
                 matrix[r][c] = mat.matrix[r][c];
@@ -893,7 +893,7 @@ struct Matrix(type, int rows_, int cols_) if((rows_ > 0) && (cols_ > 0)) {
     }
 
     /// ditto
-    this(T)(T mat) if(is_matrix!T && (T.cols < cols) && (T.rows < rows)) {
+    this(T)(T mat) if(isMatrix!T && (T.cols < cols) && (T.rows < rows)) {
         make_identity();
 
         foreach(r; TupleRange!(0, T.rows)) {
@@ -2388,7 +2388,7 @@ struct Quaternion(type) {
         return ret;
     }
 
-    auto opBinaryRight(string op, T)(T inp) const if(!is_quaternion!T) {
+    auto opBinaryRight(string op, T)(T inp) const if(!isQuaternion!T) {
         return this.opBinary!(op)(inp);
     }
 

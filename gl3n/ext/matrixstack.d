@@ -1,12 +1,12 @@
 module gl3n.ext.matrixstack;
 
 private {
-    import gl3n.util : is_matrix;
+    import gl3n.util : isMatrix;
 }
 
 
 /// A matrix stack similiar to OpenGLs glPushMatrix/glPopMatrix
-struct MatrixStack(T) if(is_matrix!T) {
+struct MatrixStack(T) if(isMatrix!T) {
     alias T Matrix; /// Holds the internal matrix type
 
     Matrix top = Matrix.identity; /// The top matrix, the one you work with

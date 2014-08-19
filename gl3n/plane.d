@@ -3,7 +3,7 @@ module gl3n.plane;
 private {
     import gl3n.linalg : Vector, dot, homogeneousPoint;
     import gl3n.math : almostEqual;
-	import gl3n.util : is_vector;
+	import gl3n.util : isVector;
 
     import std.traits : isFloatingPoint;
 }
@@ -59,13 +59,13 @@ struct PlaneT(type = float) if(isFloatingPoint!type) {
 
     /// Returns the distance from a point to the plane.
     /// Note: the plane $(RED must) be normalized, the result can be negative.
-    auto distance(T)(T point) const if(is_vector!T) {
+    auto distance(T)(T point) const if(isVector!T) {
         return dot(point.homogeneousPoint, p);
     }
 
     /// Returns the distance from a point to the plane.
     /// Note: the plane does not have to be normalized, the result can be negative.
-    auto ndistance(T)(T point) const if(is_vector!T) {
+    auto ndistance(T)(T point) const if(isVector!T) {
 		return normalized.distance(point);
     }
 

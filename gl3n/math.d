@@ -34,7 +34,7 @@ private {
     import std.range : ElementType;
     import smath = std.math;
     
-    import gl3n.util : is_vector, is_quaternion, is_matrix;
+    import gl3n.util : isVector, isQuaternion, isMatrix;
 
     version(unittest) {
         import gl3n.linalg : vec2, vec2i, vec3, vec3i, quat;
@@ -56,12 +56,12 @@ T mod(T)(T x, T y) { // std.math.floor is not pure
 extern (C) { float fmodf(float x, float y); }
 
 /// Calculates the absolute value.
-T abs(T)(T t) if(!is_vector!T && !is_quaternion!T && !is_matrix!T) {
+T abs(T)(T t) if(!isVector!T && !isQuaternion!T && !isMatrix!T) {
     return smath.abs(t);
 }
 
 /// Calculates the absolute value per component.
-T abs(T)(T vec) if(is_vector!T) {
+T abs(T)(T vec) if(isVector!T) {
     T ret;
 
     foreach(i, element; vec.vector) {
@@ -72,7 +72,7 @@ T abs(T)(T vec) if(is_vector!T) {
 }
 
 /// ditto
-T abs(T)(T quat) if(is_quaternion!T) {
+T abs(T)(T quat) if(isQuaternion!T) {
     T ret;
 
     ret.quaternion[0] = abs(quat.quaternion[0]);
@@ -131,12 +131,12 @@ unittest {
 }
 
 /// Compares to values and returns true if the difference is epsilon or smaller.
-bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(!is_vector!T && !is_quaternion!T) {
+bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(!isVector!T && !isQuaternion!T) {
 	return abs(a-b) <= epsilon;
 }
 
 /// ditto
-bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(is_vector!T && is_vector!S && T.dimension == S.dimension) {
+bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(isVector!T && isVector!S && T.dimension == S.dimension) {
     foreach(i; 0..T.dimension) {
 		if(!almostEqual(a.vector[i], b.vector[i], epsilon)) {
             return false;
@@ -145,7 +145,7 @@ bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(is_vector!T && is_v
     return true;
 }
 
-bool almostEqual(T)(T a, T b, float epsilon = Epsilon) if(is_quaternion!T) {
+bool almostEqual(T)(T a, T b, float epsilon = Epsilon) if(isQuaternion!T) {
     foreach(i; 0..4) {
 		if(!almostEqual(a.quaternion[i], b.quaternion[i], epsilon)) {
             return false;

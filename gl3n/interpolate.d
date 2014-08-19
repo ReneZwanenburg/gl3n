@@ -10,7 +10,7 @@ module gl3n.interpolate;
 
 private {
     import gl3n.linalg : Vector, dot, vec2, vec3, vec4, quat;
-    import gl3n.util : is_vector, is_quaternion;
+    import gl3n.util : isVector, isQuaternion;
     import gl3n.math : almostEqual, acos, sin, sqrt, clamp, PI;
     import std.conv : to;
 }
@@ -24,8 +24,8 @@ T lerp(T)(T a, T b, float t) {
 
 
 /// Interpolates spherical between to vectors or quaternions, also known as slerp.
-T slerp(T)(T a, T b, float t) if(is_vector!T || is_quaternion!T) {
-    static if(is_vector!T) {
+T slerp(T)(T a, T b, float t) if(isVector!T || isQuaternion!T) {
+    static if(isVector!T) {
         real theta = acos(dot(a, b));
     } else {
         real theta = acos(
