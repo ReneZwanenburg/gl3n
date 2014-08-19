@@ -40,7 +40,7 @@ if(isFloatingPoint!type)
     /// Normalizes the plane inplace.
     void normalize()
 	{
-        p *= 1 / p.xyz.length;
+        p *= 1 / p.xyz.magnitude;
     }
 
     /// Returns a normalized copy of the plane.

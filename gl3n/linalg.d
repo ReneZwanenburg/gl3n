@@ -477,7 +477,7 @@ struct Vector(type, size_t dimension_)
     /// Normalizes the vector.
     void normalize()
 	{
-        real len = length;
+        real len = magnitude;
 
         if(len != 0)
 		{
@@ -810,10 +810,12 @@ alias Vector!(ubyte, 4) vec4ub;*/
 /// alias Matrix!(double, 3, 4) mat34d;
 /// alias Matrix!(real, 2, 2) mat2r;
 /// ---
-struct Matrix(type, int rows_, int cols_) if((rows_ > 0) && (cols_ > 0)) {
-    alias type mt; /// Holds the internal type of the matrix;
-    static const int rows = rows_; /// Holds the number of rows;
-    static const int cols = cols_; /// Holds the number of columns;
+struct Matrix(type, size_t rows_, size_t cols_)
+if((rows_ > 0) && (cols_ > 0))
+{
+    alias mt = type; /// Holds the internal type of the matrix;
+    enum rows = rows_; /// Holds the number of rows;
+    enum cols = cols_; /// Holds the number of columns;
 
     /// Holds the matrix $(RED row-major) in memory.
     mt[cols][rows] matrix; // In C it would be mt[rows][cols], D does it like this: (mt[foo])[bar]
@@ -1510,7 +1512,7 @@ struct Matrix(type, int rows_, int cols_) if((rows_ > 0) && (cols_ > 0)) {
             static Matrix rotation(real alpha, Vector!(mt, 3) axis) {
                 Matrix mult = Matrix.identity;
 
-                if(axis.length != 1) {
+                if(axis.magnitude != 1) {
                     axis.normalize();
                 }
 
