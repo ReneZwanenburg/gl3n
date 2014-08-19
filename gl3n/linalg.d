@@ -19,12 +19,12 @@ All static methods are strongly pure.
 
 module gl3n.linalg;
 
-import std.math : isNaN, isInfinity;
+import std.math : isFinite;
 import std.conv : to;
 import std.traits : isIntegral, isFloatingPoint, isStaticArray, isDynamicArray, isImplicitlyConvertible, isArray;
 import std.string : format, rightJustify;
 import std.array : join;
-import std.algorithm : max, min, reduce;
+import std.algorithm : max, min, reduce, all, among;
 import std.functional : binaryFun;
 import gl3n.math : clamp, PI, sqrt, sin, cos, acos, tan, asin, atan2, almostEqual;
 import gl3n.util : isVector, isMatrix, isQuaternion, TupleRange;
@@ -55,7 +55,8 @@ struct Vector(type, size_t dimension_)
     alias type vt; /// Holds the internal type of the vector.
     enum dimension = dimension_; ///Holds the dimension of the vector.
 
-    vt[dimension] vector; /// Holds all coordinates, length conforms dimension.
+    vt[dimension] vector = 0; /// Holds all coordinates, length conforms dimension.
+	alias vector this;
 
     /// Returns a pointer to the coordinates.
     @property auto ptr()
@@ -218,9 +219,7 @@ struct Vector(type, size_t dimension_)
         }
         else
 		{
-			import std.algorithm : all;
-			import std.math : isFinite;
-			return vector[].all!(isFinite);
+			return vector[].all!(.isFinite);
         }
     }
 
@@ -298,8 +297,6 @@ struct Vector(type, size_t dimension_)
 
     template coordToIndex(char c)
 	{
-		import std.algorithm : among;
-
         static if(c.among('x', 'r', 'u', 's'))
 		{
 			enum coordToIndex = 0;
@@ -445,6 +442,14 @@ struct Vector(type, size_t dimension_)
         return ret_vec;
     }
 
+	@property void opDispatch(string s)(Vector!(vt, s.length) v)
+	{
+		foreach(i; TupleRange!(0, s.length))
+		{
+			vector[coordToIndex!(s[i])] = v[i];
+		}
+	}
+
     unittest
 	{
         vec2 v2 = vec2(1.0f, 2.0f);
@@ -523,13 +528,14 @@ struct Vector(type, size_t dimension_)
         assert(vec4(-1.0f, 1.0f, -1.0f, 1.0f) == -vec4(1.0f, -1.0f, 1.0f, -1.0f));
     }
 
-    Vector opBinary(string op : "*")(vt r) const
+    Vector opBinary(string op)(vt r) const
+	if(op.among("*", "/"))
 	{
         Vector ret;
 
         foreach(index; TupleRange!(0, dimension))
 		{
-            ret.vector[index] = vector[index] * r;
+			mixin("ret.vector[index] = vector[index]"~op~"r;");
         }
 
         return ret;
@@ -817,11 +823,12 @@ struct Matrix(type, size_t rows_, size_t cols_)
 if((rows_ > 0) && (cols_ > 0))
 {
     alias mt = type; /// Holds the internal type of the matrix;
+	alias vt = Vector!(mt, cols_);
     enum rows = rows_; /// Holds the number of rows;
     enum cols = cols_; /// Holds the number of columns;
 
     /// Holds the matrix $(RED row-major) in memory.
-    mt[cols][rows] matrix; // In C it would be mt[rows][cols], D does it like this: (mt[foo])[bar]
+	vt[rows] matrix = identityVectors;
     alias matrix this;
 
     unittest
@@ -919,7 +926,7 @@ if((rows_ > 0) && (cols_ > 0))
 		{
             static if(i % cols == 0)
 			{
-                matrix[i / cols] = head.vector;
+                matrix[i / cols] = head;
                 construct!(i + T.dimension)(tail);
             }
 			else
@@ -999,19 +1006,8 @@ if((rows_ > 0) && (cols_ > 0))
         }
         else
 		{
-            foreach(row; matrix)
-			{
-                foreach(col; row)
-				{
-                    if(isNaN(col) || isInfinity(col))
-					{
-                        return false;
-                    }
-                }
-            }
-            return true;
+			return matrix[].all!(a => a.isFinite);
         }
-
     }
 
     /// Sets all values of the matrix to value (each column in each row will contain this value).
@@ -1019,10 +1015,7 @@ if((rows_ > 0) && (cols_ > 0))
 	{
         foreach(r; TupleRange!(0, rows))
 		{
-            foreach(c; TupleRange!(0, cols))
-			{
-                matrix[r][c] = value;
-            }
+			matrix[r] = vt(value);
         }
     }
 
@@ -1074,32 +1067,25 @@ if((rows_ > 0) && (cols_ > 0))
         static assert(!__traits(compiles, mat4(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3)));
     }
 
+	Vector!(mt, rows) col(size_t index) const
+	in
+	{
+		assert(index < cols);
+	}
+	body
+	{
+		typeof(return) vec;
+
+		foreach(i; TupleRange!(0, rows))
+		{
+			vec[i] = matrix[i][index];
+		}
+
+		return vec;
+	}
+
     static if(rows == cols)
 	{
-        /// Makes the current matrix an identity matrix.
-        void makeIdentity()
-		{
-            clear(0);
-            foreach(r; TupleRange!(0, rows))
-			{
-                matrix[r][r] = 1;
-            }
-        }
-
-        /// Returns a identity matrix.
-        static @property Matrix identity()
-		{
-            Matrix ret;
-            ret.clear(0);
-
-            foreach(r; TupleRange!(0, rows))
-			{
-                ret.matrix[r][r] = 1;
-            }
-
-            return ret;
-        }
-
         /// Transposes the current matrix;
         void transpose()
 		{
@@ -1145,12 +1131,9 @@ if((rows_ > 0) && (cols_ > 0))
 	{
         typeof(return) ret;
 
-        foreach(r; TupleRange!(0, rows))
+        foreach(c; TupleRange!(0, cols))
 		{
-            foreach(c; TupleRange!(0, cols))
-			{
-                ret.matrix[c][r] = matrix[r][c];
-            }
+			ret[c] = col(c);
         }
 
         return ret;
@@ -1172,15 +1155,17 @@ if((rows_ > 0) && (cols_ > 0))
 			{
                 mt d = 1 / det;
 
-                mat.matrix = [[matrix[1][1]*d, -matrix[0][1]*d],
-                              [-matrix[1][0]*d, matrix[0][0]*d]];
+                mat = Matrix(
+					 col(1) * d,
+                    -col(0) * d);
             }
 			else
 			{
                 mt d = det;
 
-                mat.matrix = [[matrix[1][1]/d, -matrix[0][1]/d],
-                              [-matrix[1][0]/d, matrix[0][0]/d]];
+                mat = Matrix(
+					 col(1) / d,
+                    -col(0) / d);
             }
 
             return mat;
@@ -1188,7 +1173,7 @@ if((rows_ > 0) && (cols_ > 0))
 
         static Matrix scaling(mt x, mt y)
 		{
-            Matrix ret = Matrix.identity;
+            Matrix ret;
 
             ret.matrix[0][0] = x;
             ret.matrix[1][1] = y;
@@ -1235,15 +1220,15 @@ if((rows_ > 0) && (cols_ > 0))
             }
 
             mixin(`
-            mat.matrix = [[(matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1])`~op~`d,
-                           (matrix[0][2] * matrix[2][1] - matrix[0][1] * matrix[2][2])`~op~`d,
-                           (matrix[0][1] * matrix[1][2] - matrix[0][2] * matrix[1][1])`~op~`d],
-                          [(matrix[1][2] * matrix[2][0] - matrix[1][0] * matrix[2][2])`~op~`d,
-                           (matrix[0][0] * matrix[2][2] - matrix[0][2] * matrix[2][0])`~op~`d,
-                           (matrix[0][2] * matrix[1][0] - matrix[0][0] * matrix[1][2])`~op~`d],
-                          [(matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0])`~op~`d,
-                           (matrix[0][1] * matrix[2][0] - matrix[0][0] * matrix[2][1])`~op~`d,
-                           (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0])`~op~`d]];
+            mat = Matrix((matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1])`~op~`d,
+                         (matrix[0][2] * matrix[2][1] - matrix[0][1] * matrix[2][2])`~op~`d,
+                         (matrix[0][1] * matrix[1][2] - matrix[0][2] * matrix[1][1])`~op~`d,
+                         (matrix[1][2] * matrix[2][0] - matrix[1][0] * matrix[2][2])`~op~`d,
+                         (matrix[0][0] * matrix[2][2] - matrix[0][2] * matrix[2][0])`~op~`d,
+                         (matrix[0][2] * matrix[1][0] - matrix[0][0] * matrix[1][2])`~op~`d,
+                         (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0])`~op~`d,
+                         (matrix[0][1] * matrix[2][0] - matrix[0][0] * matrix[2][1])`~op~`d,
+                         (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0])`~op~`d);
             `);
 
             return mat;
@@ -1282,38 +1267,39 @@ if((rows_ > 0) && (cols_ > 0))
             }
 
             mixin(`
-            mat.matrix = [[(matrix[1][1] * matrix[2][2] * matrix[3][3] + matrix[1][2] * matrix[2][3] * matrix[3][1] + matrix[1][3] * matrix[2][1] * matrix[3][2]
-                          - matrix[1][1] * matrix[2][3] * matrix[3][2] - matrix[1][2] * matrix[2][1] * matrix[3][3] - matrix[1][3] * matrix[2][2] * matrix[3][1])`~op~`d,
-                           (matrix[0][1] * matrix[2][3] * matrix[3][2] + matrix[0][2] * matrix[2][1] * matrix[3][3] + matrix[0][3] * matrix[2][2] * matrix[3][1]
-                          - matrix[0][1] * matrix[2][2] * matrix[3][3] - matrix[0][2] * matrix[2][3] * matrix[3][1] - matrix[0][3] * matrix[2][1] * matrix[3][2])`~op~`d,
-                           (matrix[0][1] * matrix[1][2] * matrix[3][3] + matrix[0][2] * matrix[1][3] * matrix[3][1] + matrix[0][3] * matrix[1][1] * matrix[3][2]
-                          - matrix[0][1] * matrix[1][3] * matrix[3][2] - matrix[0][2] * matrix[1][1] * matrix[3][3] - matrix[0][3] * matrix[1][2] * matrix[3][1])`~op~`d,
-                           (matrix[0][1] * matrix[1][3] * matrix[2][2] + matrix[0][2] * matrix[1][1] * matrix[2][3] + matrix[0][3] * matrix[1][2] * matrix[2][1]
-                          - matrix[0][1] * matrix[1][2] * matrix[2][3] - matrix[0][2] * matrix[1][3] * matrix[2][1] - matrix[0][3] * matrix[1][1] * matrix[2][2])`~op~`d],
-                          [(matrix[1][0] * matrix[2][3] * matrix[3][2] + matrix[1][2] * matrix[2][0] * matrix[3][3] + matrix[1][3] * matrix[2][2] * matrix[3][0]
-                          - matrix[1][0] * matrix[2][2] * matrix[3][3] - matrix[1][2] * matrix[2][3] * matrix[3][0] - matrix[1][3] * matrix[2][0] * matrix[3][2])`~op~`d,
-                           (matrix[0][0] * matrix[2][2] * matrix[3][3] + matrix[0][2] * matrix[2][3] * matrix[3][0] + matrix[0][3] * matrix[2][0] * matrix[3][2]
-                          - matrix[0][0] * matrix[2][3] * matrix[3][2] - matrix[0][2] * matrix[2][0] * matrix[3][3] - matrix[0][3] * matrix[2][2] * matrix[3][0])`~op~`d,
-                           (matrix[0][0] * matrix[1][3] * matrix[3][2] + matrix[0][2] * matrix[1][0] * matrix[3][3] + matrix[0][3] * matrix[1][2] * matrix[3][0]
-                          - matrix[0][0] * matrix[1][2] * matrix[3][3] - matrix[0][2] * matrix[1][3] * matrix[3][0] - matrix[0][3] * matrix[1][0] * matrix[3][2])`~op~`d,
-                           (matrix[0][0] * matrix[1][2] * matrix[2][3] + matrix[0][2] * matrix[1][3] * matrix[2][0] + matrix[0][3] * matrix[1][0] * matrix[2][2]
-                          - matrix[0][0] * matrix[1][3] * matrix[2][2] - matrix[0][2] * matrix[1][0] * matrix[2][3] - matrix[0][3] * matrix[1][2] * matrix[2][0])`~op~`d],
-                          [(matrix[1][0] * matrix[2][1] * matrix[3][3] + matrix[1][1] * matrix[2][3] * matrix[3][0] + matrix[1][3] * matrix[2][0] * matrix[3][1]
-                          - matrix[1][0] * matrix[2][3] * matrix[3][1] - matrix[1][1] * matrix[2][0] * matrix[3][3] - matrix[1][3] * matrix[2][1] * matrix[3][0])`~op~`d,
-                           (matrix[0][0] * matrix[2][3] * matrix[3][1] + matrix[0][1] * matrix[2][0] * matrix[3][3] + matrix[0][3] * matrix[2][1] * matrix[3][0]
-                          - matrix[0][0] * matrix[2][1] * matrix[3][3] - matrix[0][1] * matrix[2][3] * matrix[3][0] - matrix[0][3] * matrix[2][0] * matrix[3][1])`~op~`d,
-                           (matrix[0][0] * matrix[1][1] * matrix[3][3] + matrix[0][1] * matrix[1][3] * matrix[3][0] + matrix[0][3] * matrix[1][0] * matrix[3][1]
-                          - matrix[0][0] * matrix[1][3] * matrix[3][1] - matrix[0][1] * matrix[1][0] * matrix[3][3] - matrix[0][3] * matrix[1][1] * matrix[3][0])`~op~`d,
-                           (matrix[0][0] * matrix[1][3] * matrix[2][1] + matrix[0][1] * matrix[1][0] * matrix[2][3] + matrix[0][3] * matrix[1][1] * matrix[2][0]
-                          - matrix[0][0] * matrix[1][1] * matrix[2][3] - matrix[0][1] * matrix[1][3] * matrix[2][0] - matrix[0][3] * matrix[1][0] * matrix[2][1])`~op~`d],
-                          [(matrix[1][0] * matrix[2][2] * matrix[3][1] + matrix[1][1] * matrix[2][0] * matrix[3][2] + matrix[1][2] * matrix[2][1] * matrix[3][0]
-                          - matrix[1][0] * matrix[2][1] * matrix[3][2] - matrix[1][1] * matrix[2][2] * matrix[3][0] - matrix[1][2] * matrix[2][0] * matrix[3][1])`~op~`d,
-                           (matrix[0][0] * matrix[2][1] * matrix[3][2] + matrix[0][1] * matrix[2][2] * matrix[3][0] + matrix[0][2] * matrix[2][0] * matrix[3][1]
-                          - matrix[0][0] * matrix[2][2] * matrix[3][1] - matrix[0][1] * matrix[2][0] * matrix[3][2] - matrix[0][2] * matrix[2][1] * matrix[3][0])`~op~`d,
-                           (matrix[0][0] * matrix[1][2] * matrix[3][1] + matrix[0][1] * matrix[1][0] * matrix[3][2] + matrix[0][2] * matrix[1][1] * matrix[3][0]
-                          - matrix[0][0] * matrix[1][1] * matrix[3][2] - matrix[0][1] * matrix[1][2] * matrix[3][0] - matrix[0][2] * matrix[1][0] * matrix[3][1])`~op~`d,
-                           (matrix[0][0] * matrix[1][1] * matrix[2][2] + matrix[0][1] * matrix[1][2] * matrix[2][0] + matrix[0][2] * matrix[1][0] * matrix[2][1]
-                          - matrix[0][0] * matrix[1][2] * matrix[2][1] - matrix[0][1] * matrix[1][0] * matrix[2][2] - matrix[0][2] * matrix[1][1] * matrix[2][0])`~op~`d]];
+            mat.matrix = Matrix(
+                          (matrix[1][1] * matrix[2][2] * matrix[3][3] + matrix[1][2] * matrix[2][3] * matrix[3][1] + matrix[1][3] * matrix[2][1] * matrix[3][2]
+                         -matrix[1][1] * matrix[2][3] * matrix[3][2] - matrix[1][2] * matrix[2][1] * matrix[3][3] - matrix[1][3] * matrix[2][2] * matrix[3][1])`~op~`d,
+                          (matrix[0][1] * matrix[2][3] * matrix[3][2] + matrix[0][2] * matrix[2][1] * matrix[3][3] + matrix[0][3] * matrix[2][2] * matrix[3][1]
+                         -matrix[0][1] * matrix[2][2] * matrix[3][3] - matrix[0][2] * matrix[2][3] * matrix[3][1] - matrix[0][3] * matrix[2][1] * matrix[3][2])`~op~`d,
+                          (matrix[0][1] * matrix[1][2] * matrix[3][3] + matrix[0][2] * matrix[1][3] * matrix[3][1] + matrix[0][3] * matrix[1][1] * matrix[3][2]
+                         -matrix[0][1] * matrix[1][3] * matrix[3][2] - matrix[0][2] * matrix[1][1] * matrix[3][3] - matrix[0][3] * matrix[1][2] * matrix[3][1])`~op~`d,
+                          (matrix[0][1] * matrix[1][3] * matrix[2][2] + matrix[0][2] * matrix[1][1] * matrix[2][3] + matrix[0][3] * matrix[1][2] * matrix[2][1]
+                         -matrix[0][1] * matrix[1][2] * matrix[2][3] - matrix[0][2] * matrix[1][3] * matrix[2][1] - matrix[0][3] * matrix[1][1] * matrix[2][2])`~op~`d,
+                          (matrix[1][0] * matrix[2][3] * matrix[3][2] + matrix[1][2] * matrix[2][0] * matrix[3][3] + matrix[1][3] * matrix[2][2] * matrix[3][0]
+                         -matrix[1][0] * matrix[2][2] * matrix[3][3] - matrix[1][2] * matrix[2][3] * matrix[3][0] - matrix[1][3] * matrix[2][0] * matrix[3][2])`~op~`d,
+                          (matrix[0][0] * matrix[2][2] * matrix[3][3] + matrix[0][2] * matrix[2][3] * matrix[3][0] + matrix[0][3] * matrix[2][0] * matrix[3][2]
+                         -matrix[0][0] * matrix[2][3] * matrix[3][2] - matrix[0][2] * matrix[2][0] * matrix[3][3] - matrix[0][3] * matrix[2][2] * matrix[3][0])`~op~`d,
+                          (matrix[0][0] * matrix[1][3] * matrix[3][2] + matrix[0][2] * matrix[1][0] * matrix[3][3] + matrix[0][3] * matrix[1][2] * matrix[3][0]
+                         -matrix[0][0] * matrix[1][2] * matrix[3][3] - matrix[0][2] * matrix[1][3] * matrix[3][0] - matrix[0][3] * matrix[1][0] * matrix[3][2])`~op~`d,
+                          (matrix[0][0] * matrix[1][2] * matrix[2][3] + matrix[0][2] * matrix[1][3] * matrix[2][0] + matrix[0][3] * matrix[1][0] * matrix[2][2]
+                         -matrix[0][0] * matrix[1][3] * matrix[2][2] - matrix[0][2] * matrix[1][0] * matrix[2][3] - matrix[0][3] * matrix[1][2] * matrix[2][0])`~op~`d,
+                          (matrix[1][0] * matrix[2][1] * matrix[3][3] + matrix[1][1] * matrix[2][3] * matrix[3][0] + matrix[1][3] * matrix[2][0] * matrix[3][1]
+                         -matrix[1][0] * matrix[2][3] * matrix[3][1] - matrix[1][1] * matrix[2][0] * matrix[3][3] - matrix[1][3] * matrix[2][1] * matrix[3][0])`~op~`d,
+                          (matrix[0][0] * matrix[2][3] * matrix[3][1] + matrix[0][1] * matrix[2][0] * matrix[3][3] + matrix[0][3] * matrix[2][1] * matrix[3][0]
+                         -matrix[0][0] * matrix[2][1] * matrix[3][3] - matrix[0][1] * matrix[2][3] * matrix[3][0] - matrix[0][3] * matrix[2][0] * matrix[3][1])`~op~`d,
+                          (matrix[0][0] * matrix[1][1] * matrix[3][3] + matrix[0][1] * matrix[1][3] * matrix[3][0] + matrix[0][3] * matrix[1][0] * matrix[3][1]
+                         -matrix[0][0] * matrix[1][3] * matrix[3][1] - matrix[0][1] * matrix[1][0] * matrix[3][3] - matrix[0][3] * matrix[1][1] * matrix[3][0])`~op~`d,
+                          (matrix[0][0] * matrix[1][3] * matrix[2][1] + matrix[0][1] * matrix[1][0] * matrix[2][3] + matrix[0][3] * matrix[1][1] * matrix[2][0]
+                         -matrix[0][0] * matrix[1][1] * matrix[2][3] - matrix[0][1] * matrix[1][3] * matrix[2][0] - matrix[0][3] * matrix[1][0] * matrix[2][1])`~op~`d,
+                          (matrix[1][0] * matrix[2][2] * matrix[3][1] + matrix[1][1] * matrix[2][0] * matrix[3][2] + matrix[1][2] * matrix[2][1] * matrix[3][0]
+                         -matrix[1][0] * matrix[2][1] * matrix[3][2] - matrix[1][1] * matrix[2][2] * matrix[3][0] - matrix[1][2] * matrix[2][0] * matrix[3][1])`~op~`d,
+                          (matrix[0][0] * matrix[2][1] * matrix[3][2] + matrix[0][1] * matrix[2][2] * matrix[3][0] + matrix[0][2] * matrix[2][0] * matrix[3][1]
+                         -matrix[0][0] * matrix[2][2] * matrix[3][1] - matrix[0][1] * matrix[2][0] * matrix[3][2] - matrix[0][2] * matrix[2][1] * matrix[3][0])`~op~`d,
+                          (matrix[0][0] * matrix[1][2] * matrix[3][1] + matrix[0][1] * matrix[1][0] * matrix[3][2] + matrix[0][2] * matrix[1][1] * matrix[3][0]
+                         -matrix[0][0] * matrix[1][1] * matrix[3][2] - matrix[0][1] * matrix[1][2] * matrix[3][0] - matrix[0][2] * matrix[1][0] * matrix[3][1])`~op~`d,
+                          (matrix[0][0] * matrix[1][1] * matrix[2][2] + matrix[0][1] * matrix[1][2] * matrix[2][0] + matrix[0][2] * matrix[1][0] * matrix[2][1]
+                         -matrix[0][0] * matrix[1][2] * matrix[2][1] - matrix[0][1] * matrix[1][0] * matrix[2][2] - matrix[0][2] * matrix[1][1] * matrix[2][0])`~op~`d);
             `);
 
             return mat;
@@ -1455,10 +1441,10 @@ if((rows_ > 0) && (cols_ > 0))
                 vec3mt right_dir = cross(look_dir, up_dir).normalized;
                 vec3mt perp_up_dir = cross(right_dir, look_dir);
 
-                Matrix ret = Matrix.identity;
-                ret.matrix[0][0..3] = right_dir.vector[];
-                ret.matrix[1][0..3] = perp_up_dir.vector[];
-                ret.matrix[2][0..3] = (-look_dir).vector[];
+                Matrix ret;
+                ret.matrix[0].xyz = right_dir;
+                ret.matrix[1].xyz = perp_up_dir;
+                ret.matrix[2].xyz = -look_dir;
 
                 ret.matrix[0][3] = -dot(eye, right_dir);
                 ret.matrix[1][3] = -dot(eye, perp_up_dir);
@@ -1519,7 +1505,7 @@ if((rows_ > 0) && (cols_ > 0))
         /// Returns a translation matrix (3x3 and 4x4 matrices).
         static Matrix translation(mt x, mt y, mt z)
 		{
-            Matrix ret = Matrix.identity;
+            Matrix ret;
 
             ret.matrix[0][cols-1] = x;
             ret.matrix[1][cols-1] = y;
@@ -1538,7 +1524,7 @@ if((rows_ > 0) && (cols_ > 0))
         /// Returns a scaling matrix (3x3 and 4x4 matrices);
         static Matrix scaling(mt x, mt y, mt z)
 		{
-            Matrix ret = Matrix.identity;
+            Matrix ret;
 
             ret.matrix[0][0] = x;
             ret.matrix[1][1] = y;
@@ -1594,7 +1580,7 @@ if((rows_ > 0) && (cols_ > 0))
         /// Returns an identity matrix with an applied rotateAxis around an arbitrary axis (nxn matrices, n >= 3).
         static Matrix rotation(real alpha, Vector!(mt, 3) axis)
 		{
-            Matrix mult = Matrix.identity;
+            Matrix mult;
 
             if(axis.magnitude != 1)
 			{
@@ -1628,7 +1614,7 @@ if((rows_ > 0) && (cols_ > 0))
         /// Returns an identity matrix with an applied rotation around the x-axis (nxn matrices, n >= 3).
         static Matrix xRotation(real alpha)
 		{
-            Matrix mult = Matrix.identity;
+            Matrix mult;
 
             mt cosamt = to!mt(cos(alpha));
             mt sinamt = to!mt(sin(alpha));
@@ -1644,7 +1630,7 @@ if((rows_ > 0) && (cols_ > 0))
         /// Returns an identity matrix with an applied rotation around the y-axis (nxn matrices, n >= 3).
         static Matrix yRotation(real alpha)
 		{
-            Matrix mult = Matrix.identity;
+            Matrix mult;
 
             mt cosamt = to!mt(cos(alpha));
             mt sinamt = to!mt(sin(alpha));
@@ -1660,7 +1646,7 @@ if((rows_ > 0) && (cols_ > 0))
         /// Returns an identity matrix with an applied rotation around the z-axis (nxn matrices, n >= 3).
         static Matrix zRotation(real alpha)
 		{
-            Matrix mult = Matrix.identity;
+            Matrix mult;
 
             mt cosamt = to!mt(cos(alpha));
             mt sinamt = to!mt(sin(alpha));
@@ -1924,6 +1910,17 @@ if((rows_ > 0) && (cols_ > 0))
         else { assert(false); }
     }
 
+	
+	private static @property vt[rows] identityVectors()
+	{
+		vt[rows] vectors;
+		foreach(i; 0..min(cols, rows))
+		{
+			vectors[i][i] = 1;
+		}
+		return vectors;
+	}
+
 }
 
 /// Pre-defined matrix types, the first number represents the number of rows
@@ -2007,14 +2004,7 @@ struct Quaternion(type)
     /// Returns true if all values are not nan and finite, otherwise false.
     @property bool isFinite() const
 	{
-        foreach(q; quaternion)
-		{
-            if(isNaN(q) || isInfinity(q))
-			{
-                return false;
-            }
-        }
-        return true;
+		return quaternion[].all!(.isFinite);
     }
 
     unittest
