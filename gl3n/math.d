@@ -22,23 +22,20 @@ public {
                       floor, trunc, round, ceil, modf;
     alias round roundEven;
     alias floor fract;
-    //import core.stdc.math : fmodf;
     import std.algorithm : min, max;
 }
 
-private {
-    import std.conv : to;
-    import std.algorithm : all;
-    import std.array : zip;
-    import std.traits : CommonType;
-    import std.range : ElementType;
-    import smath = std.math;
-    
-    import gl3n.util : isVector, isQuaternion, isMatrix;
+import std.conv : to;
+import std.algorithm : all;
+import std.array : zip;
+import std.traits : CommonType;
+import std.range : ElementType;
+import smath = std.math;
 
-    version(unittest) {
-        import gl3n.linalg : vec2, vec2i, vec3, vec3i, quat;
-    }
+import gl3n.util : isVector, isQuaternion, isMatrix;
+
+version(unittest) {
+    import gl3n.linalg : vec2, vec2i, vec3, vec3i, quat;
 }
 
 public enum real DegToRad	= PI / 180;
@@ -47,21 +44,26 @@ public enum real RadToDeg	= 180 / PI;
 public enum real Epsilon	= 0.000001f;
 
 /// Modulus. Returns x - y * floor(x/y).
-T mod(T)(T x, T y) { // std.math.floor is not pure
+T mod(T)(T x, T y)
+{ // std.math.floor is not pure
     return x - y * floor(x/y);
 }
 
 @safe pure nothrow:
 
-extern (C) { float fmodf(float x, float y); }
+extern(C) float fmodf(float x, float y);
 
 /// Calculates the absolute value.
-T abs(T)(T t) if(!isVector!T && !isQuaternion!T && !isMatrix!T) {
+T abs(T)(T t)
+if(!isVector!T && !isQuaternion!T && !isMatrix!T)
+{
     return smath.abs(t);
 }
 
 /// Calculates the absolute value per component.
-T abs(T)(T vec) if(isVector!T) {
+T abs(T)(T vec)
+if(isVector!T)
+{
     T ret;
 
     foreach(i, element; vec.vector) {
@@ -72,7 +74,9 @@ T abs(T)(T vec) if(isVector!T) {
 }
 
 /// ditto
-T abs(T)(T quat) if(isQuaternion!T) {
+T abs(T)(T quat)
+if(isQuaternion!T)
+{
     T ret;
 
     ret.quaternion[0] = abs(quat.quaternion[0]);
@@ -83,7 +87,8 @@ T abs(T)(T quat) if(isQuaternion!T) {
     return ret;
 }
 
-unittest {
+unittest
+{
     assert(abs(0) == 0);
     assert(abs(-1) == 1);
     assert(abs(1) == 1);
@@ -99,22 +104,30 @@ unittest {
 }
 
 /// Returns 1/sqrt(x), results are undefined if x <= 0.
-real invSqrt(real x) {
+real invSqrt(real x)
+{
     return 1 / sqrt(x);
 }
 
 /// Returns 1.0 if x > 0, 0.0 if x = 0, or -1.0 if x < 0.
-float sign(T)(T x) {
-    if(x > 0) {
+float sign(T)(T x)
+{
+    if(x > 0)
+	{
         return 1.0f;
-    } else if(x == 0) {
+    }
+	else if(x == 0)
+	{
         return 0.0f;
-    } else { // if x < 0
+    }
+	else
+	{ // if x < 0
         return -1.0f;
     }
 }
 
-unittest {
+unittest
+{
     assert(invSqrt(1.0f) == 1.0f);
 	assert(invSqrt(10.0f) == (1/sqrt(10.0f)));
 	assert(invSqrt(2342342.0f) == (1/sqrt(2342342.0f)));
@@ -131,30 +144,41 @@ unittest {
 }
 
 /// Compares to values and returns true if the difference is epsilon or smaller.
-bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(!isVector!T && !isQuaternion!T) {
+bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon)
+if(!isVector!T && !isQuaternion!T)
+{
 	return abs(a-b) <= epsilon;
 }
 
 /// ditto
-bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon) if(isVector!T && isVector!S && T.dimension == S.dimension) {
-    foreach(i; 0..T.dimension) {
-		if(!almostEqual(a.vector[i], b.vector[i], epsilon)) {
+bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon)
+if(isVector!T && isVector!S && T.dimension == S.dimension)
+{
+    foreach(i; 0..T.dimension)
+	{
+		if(!almostEqual(a.vector[i], b.vector[i], epsilon))
+		{
             return false;
         }
     }
     return true;
 }
 
-bool almostEqual(T)(T a, T b, float epsilon = Epsilon) if(isQuaternion!T) {
-    foreach(i; 0..4) {
-		if(!almostEqual(a.quaternion[i], b.quaternion[i], epsilon)) {
+bool almostEqual(T)(T a, T b, float epsilon = Epsilon)
+if(isQuaternion!T)
+{
+    foreach(i; 0..4)
+	{
+		if(!almostEqual(a.quaternion[i], b.quaternion[i], epsilon))
+		{
             return false;
         }
     }
     return true;
 }
 
-unittest {
+unittest
+{
 	assert(almostEqual(0, 0));
 	assert(almostEqual(1, 1));
 	assert(almostEqual(-1, -1));    
@@ -171,11 +195,13 @@ unittest {
 }
 
 /// Returns min(max(x, min_val), max_val), Results are undefined if min_val > max_val.
-CommonType!(T1, T2, T3) clamp(T1, T2, T3)(T1 x, T2 min_val, T3 max_val) {
+CommonType!(T1, T2, T3) clamp(T1, T2, T3)(T1 x, T2 min_val, T3 max_val)
+{
     return min(max(x, min_val), max_val);
 }
 
-unittest {
+unittest
+{
     assert(clamp(-1, 0, 2) == 0);
     assert(clamp(0, 0, 2) == 0);
     assert(clamp(1, 0, 2) == 1);
@@ -184,19 +210,22 @@ unittest {
 }
 
 /// Returns 0.0 if x < edge, otherwise it returns 1.0.
-float step(T1, T2)(T1 edge, T2 x) {
+float step(T1, T2)(T1 edge, T2 x)
+{
     return x < edge ? 0.0f:1.0f;
 }
 
 /// Returns 0.0 if x <= edge0 and 1.0 if x >= edge1 and performs smooth 
 /// hermite interpolation between 0 and 1 when edge0 < x < edge1. 
 /// This is useful in cases where you would want a threshold function with a smooth transition.
-CommonType!(T1, T2, T3) smoothStep(T1, T2, T3)(T1 edge0, T2 edge1, T3 x) {
+CommonType!(T1, T2, T3) smoothStep(T1, T2, T3)(T1 edge0, T2 edge1, T3 x)
+{
     auto t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
     return t * t * (3 - 2 * t);
 }
 
-unittest {
+unittest
+{
     assert(step(0, 1) == 1.0f);
     assert(step(0, 10) == 1.0f);
     assert(step(1, 0) == 0.0f);

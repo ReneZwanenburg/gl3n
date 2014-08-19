@@ -9,7 +9,8 @@ import std.array;
 /// Base template for all AABB-types.
 /// Params:
 /// type = all values get stored as this type
-struct AABBT(type) {
+struct AABBT(type)
+{
     alias at = type; /// Holds the internal type of the AABB.
     alias vt = Vector!(at, 3); /// Convenience alias to the corresponding vector type.
 
@@ -24,20 +25,23 @@ struct AABBT(type) {
 	{
         AABBT res;
 
-        if(points.empty) {
+        if(points.empty)
+		{
             return res;
         }
 
         res.min = res.max = points.front;
 		points.popFront();
-		foreach(point; points) {
+		foreach(point; points)
+		{
             res.expand(point);
         }
         
         return res;
     }
 
-    unittest {
+    unittest
+	{
         AABB a = AABB(vt(0.0f, 1.0f, 2.0f), vt(1.0f, 2.0f, 3.0f));
         assert(a.min == vt(0.0f, 1.0f, 2.0f));
         assert(a.max == vt(1.0f, 2.0f, 3.0f));
@@ -52,18 +56,21 @@ struct AABBT(type) {
     }
 
     /// Expands the AABB by another AABB. 
-    void expand(AABBT b) {
+    void expand(AABBT b)
+	{
 		min = componentMin(min, b.min);
 		max = componentMax(max, b.max);
     }
 
     /// Expands the AABB, so that $(I v) is part of the AABB.
-    void expand(vt v) {
+    void expand(vt v)
+	{
 		min = componentMin(min, v);
 		max = componentMax(max, v);
     }
 
-    unittest {
+    unittest
+	{
         AABB a = AABB(vt(0.0f, 0.0f, 0.0f), vt(1.0f, 4.0f, 1.0f));
         AABB b = AABB(vt(2.0f, -1.0f, 2.0f), vt(3.0f, 3.0f, 3.0f));
 
@@ -80,13 +87,15 @@ struct AABBT(type) {
 
     /// Returns true if the AABBs intersect.
     /// This also returns true if one AABB lies inside another.
-    bool intersects(AABBT box) const {
+    bool intersects(AABBT box) const
+	{
         return (min.x < box.max.x && max.x > box.min.x) &&
                (min.y < box.max.y && max.y > box.min.y) &&
                (min.z < box.max.z && max.z > box.min.z);
     }
 
-    unittest {
+    unittest
+	{
         assert(AABB(vt(0.0f, 0.0f, 0.0f), vt(1.0f, 1.0f, 1.0f)).intersects(
                AABB(vt(0.5f, 0.5f, 0.5f), vt(3.0f, 3.0f, 3.0f))));
 
@@ -98,16 +107,19 @@ struct AABBT(type) {
     }
 
     /// Returns the extent of the AABB (also sometimes called size).
-    @property vt extent() const {
+    @property vt extent() const
+	{
         return max - min;
     }
 
     /// Returns the half extent.
-    @property vt halfExtent() const {
+    @property vt halfExtent() const
+	{
         return 0.5 * extent;
     }
 
-    unittest {
+    unittest
+	{
         AABB a = AABB(vt(0.0f, 0.0f, 0.0f), vt(1.0f, 1.0f, 1.0f));
         assert(a.extent == vt(1.0f, 1.0f, 1.0f));
         assert(a.halfExtent == 0.5 * a.extent);
@@ -119,12 +131,14 @@ struct AABBT(type) {
     }
 
     /// Returns the area of the AABB.
-    @property at area() const {
+    @property at area() const
+	{
         vt e = extent;
         return 2.0 * (e.x * e.y + e.x * e.z + e.y * e.z);
     }
 
-    unittest {
+    unittest
+	{
         AABB a = AABB(vt(0.0f, 0.0f, 0.0f), vt(1.0f, 1.0f, 1.0f));
         assert(a.area == 6);
 
@@ -136,18 +150,22 @@ struct AABBT(type) {
     }
 
     /// Returns the center of the AABB.
-    @property vt center() const {
+    @property vt center() const
+	{
         return 0.5 * (max + min);
     }
 
-    unittest {
+    unittest
+	{
         AABB a = AABB(vt(0.5f, 0.5f, 0.5f), vt(1.0f, 1.0f, 1.0f));
         assert(a.center == vt(0.75f, 0.75f, 0.75f));
     }
 
     /// Returns all vertices of the AABB, basically one vt per corner.
-    @property vt[8] vertices() const {
-        return [
+    @property vt[8] vertices() const
+	{
+        return
+		[
             vt(min.x, min.y, min.z),
             vt(min.x, min.y, max.z),
             vt(min.x, max.y, min.z),

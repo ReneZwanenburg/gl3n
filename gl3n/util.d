@@ -17,7 +17,8 @@ enum isMatrix(T)		= is(T == Matrix!Args,		Args...);
 enum isQuaternion(T)	= is(T == Quaternion!Args,	Args...);
 enum isPlane(T)			= is(T == PlaneT!Args,		Args...);
 
-unittest {
+unittest
+{
 	assert(isVector!vec2);
 	assert(isVector!vec3);
 	assert(isVector!vec3d);
@@ -47,10 +48,15 @@ unittest {
     assert(!isPlane!float);
 }
 
-template TupleRange(int from, int to) if (from <= to) {
-    static if (from >= to) {
+template TupleRange(int from, int to)
+if (from <= to)
+{
+    static if (from >= to)
+	{
         alias TupleRange = TypeTuple!();
-    } else {
+    }
+	else
+	{
         alias TupleRange = TypeTuple!(from, TupleRange!(from + 1, to));
     }
 }

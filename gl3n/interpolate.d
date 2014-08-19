@@ -8,37 +8,45 @@ License: MIT
 
 module gl3n.interpolate;
 
-private {
-    import gl3n.linalg : Vector, dot, vec2, vec3, vec4, quat;
-    import gl3n.util : isVector, isQuaternion;
-    import gl3n.math : almostEqual, acos, sin, sqrt, clamp, PI;
-    import std.conv : to;
-}
+import gl3n.linalg : Vector, dot, vec2, vec3, vec4, quat;
+import gl3n.util : isVector, isQuaternion;
+import gl3n.math : almostEqual, acos, sin, sqrt, clamp, PI;
+import std.conv : to;
 
 @safe pure nothrow:
 
 /// Interpolates linear between two points, also known as lerp.
-T lerp(T)(T a, T b, float t) {
+T lerp(T)(T a, T b, float t)
+{
     return a * (1 - t) + b * t;
 }
 
 
 /// Interpolates spherical between to vectors or quaternions, also known as slerp.
-T slerp(T)(T a, T b, float t) if(isVector!T || isQuaternion!T) {
-    static if(isVector!T) {
+T slerp(T)(T a, T b, float t) if(isVector!T || isQuaternion!T)
+{
+    static if(isVector!T)
+	{
         real theta = acos(dot(a, b));
-    } else {
+    }
+	else
+	{
         real theta = acos(
             // this is a workaround, acos returning -nan on certain values near +/-1
             clamp(a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z, -1, 1)
         );
     }
     
-    if(almostEqual(theta, 0)) {
+    if(almostEqual(theta, 0))
+	{
         return a;
-    } else if(almostEqual(theta, PI)) { // 180°?
+    }
+	else if(almostEqual(theta, PI))
+	{ // 180°?
         return interp(a, b, t);
-    } else { // slerp
+    }
+	else
+	{ // slerp
         real sintheta = sin(theta);
         return (sin((1.0-t)*theta)/sintheta)*a + (sin(t*theta)/sintheta)*b;
     }
@@ -46,14 +54,18 @@ T slerp(T)(T a, T b, float t) if(isVector!T || isQuaternion!T) {
 
 
 /// Normalized quaternion linear interpolation.
-quat nlerp(quat a, quat b, float t) {
+quat nlerp(quat a, quat b, float t)
+{
     // TODO: tests
     float dot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
 
     quat result;
-    if(dot < 0) { // Determine the "shortest route"...
+    if(dot < 0)
+	{ // Determine the "shortest route"...
         result = a - (b + a) * t; // use -b instead of b
-    } else {
+    }
+	else
+	{
         result = a + (b - a) * t;
     }
     result.normalize();
@@ -61,7 +73,8 @@ quat nlerp(quat a, quat b, float t) {
     return result;
 }
 
-unittest {
+unittest
+{
     vec2 v2_1 = vec2(1.0f);
     vec2 v2_2 = vec2(0.0f);
     vec3 v3_1 = vec3(1.0f);
@@ -113,7 +126,8 @@ unittest {
 
 
 /// Catmull-rom interpolation between four points.
-T catmullRom(T)(T p0, T p1, T p2, T p3, float t) {
+T catmullRom(T)(T p0, T p1, T p2, T p3, float t)
+{
     return 0.5f * ((2 * p1) + 
                    (-p0 + p2) * t +
                    (2 * p0 - 5 * p1 + 4 * p2 - p3) * t^^2 +
@@ -121,7 +135,8 @@ T catmullRom(T)(T p0, T p1, T p2, T p3, float t) {
 }
 
 /// Catmull-derivatives of the interpolation between four points.
-T catmullRomDerivative(T)(T p0, T p1, T p2, T p3, float t) {
+T catmullRomDerivative(T)(T p0, T p1, T p2, T p3, float t)
+{
     return 0.5f * ((2 * p1) +
                    (-p0 + p2) +
                    2 * (2 * p0 - 5 * p1 + 4 * p2 - p3) * t +
@@ -129,7 +144,8 @@ T catmullRomDerivative(T)(T p0, T p1, T p2, T p3, float t) {
 }
 
 /// Hermite interpolation (cubic hermite spline).
-T hermite(T)(T x, T tx, T y, T ty, float t) {
+T hermite(T)(T x, T tx, T y, T ty, float t)
+{
     float h1 = 2 * t^^3 - 3 * t^^2 + 1;
     float h2 = -2* t^^3 + 3 * t^^2;
     float h3 = t^^3 - 2 * t^^2 + t;
