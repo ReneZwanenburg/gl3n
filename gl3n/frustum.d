@@ -4,7 +4,7 @@
 module gl3n.frustum;
 
 private {
-    import gl3n.linalg : vec3, mat4, dot;
+    import gl3n.linalg : vec4, mat4, dot;
     import gl3n.math : abs;
     import gl3n.aabb : AABB;
     import gl3n.plane : Plane;
@@ -40,37 +40,43 @@ struct Frustum {
         
         planes = [
             // left
-            Plane(mvp[0][3] + mvp[0][0],
-                  mvp[1][3] + mvp[1][0],
-                  mvp[2][3] + mvp[2][0],
-                  mvp[3][3] + mvp[3][0]),
+            Plane(vec4(
+				mvp[0][3] + mvp[0][0],
+				mvp[1][3] + mvp[1][0],
+				mvp[2][3] + mvp[2][0],
+				mvp[3][3] + mvp[3][0])),
 
             // right
-            Plane(mvp[0][3] - mvp[0][0],
-                  mvp[1][3] - mvp[1][0],
-                  mvp[2][3] - mvp[2][0],
-                  mvp[3][3] - mvp[3][0]),
+            Plane(vec4(
+				mvp[0][3] - mvp[0][0],
+				mvp[1][3] - mvp[1][0],
+				mvp[2][3] - mvp[2][0],
+				mvp[3][3] - mvp[3][0])),
 
             // bottom
-            Plane(mvp[0][3] + mvp[0][1],
-                  mvp[1][3] + mvp[1][1],
-                  mvp[2][3] + mvp[2][1],
-                  mvp[3][3] + mvp[3][1]),
+            Plane(vec4(
+				mvp[0][3] + mvp[0][1],
+				mvp[1][3] + mvp[1][1],
+				mvp[2][3] + mvp[2][1],
+				mvp[3][3] + mvp[3][1])),
             // top
-            Plane(mvp[0][3] - mvp[0][1],
-                  mvp[1][3] - mvp[1][1],
-                  mvp[2][3] - mvp[2][1],
-                  mvp[3][3] - mvp[3][1]),
+            Plane(vec4(
+				mvp[0][3] - mvp[0][1],
+				mvp[1][3] - mvp[1][1],
+				mvp[2][3] - mvp[2][1],
+				mvp[3][3] - mvp[3][1])),
             // near
-            Plane(mvp[0][3] + mvp[0][2],
-                  mvp[1][3] + mvp[1][2],
-                  mvp[2][3] + mvp[2][2],
-                  mvp[3][3] + mvp[3][2]),
+            Plane(vec4(
+				mvp[0][3] + mvp[0][2],
+				mvp[1][3] + mvp[1][2],
+				mvp[2][3] + mvp[2][2],
+				mvp[3][3] + mvp[3][2])),
             // far
-            Plane(mvp[0][3] - mvp[0][2],
-                  mvp[1][3] - mvp[1][2],
-                  mvp[2][3] - mvp[2][2],
-                  mvp[3][3] - mvp[3][2])
+            Plane(vec4(
+				mvp[0][3] - mvp[0][2],
+				mvp[1][3] - mvp[1][2],
+				mvp[2][3] - mvp[2][2],
+				mvp[3][3] - mvp[3][2]))
         ];
 
         normalize();
@@ -92,15 +98,15 @@ struct Frustum {
 
     /// Checks if the $(I aabb) intersects with the frustum.
     /// Returns OUTSIDE (= 0), INSIDE (= 1) or INTERSECT (= 2).
-    int intersects(AABB aabb) {
-        vec3 hextent = aabb.halfExtent;
-        vec3 center = aabb.center;
+    bool intersects(AABB aabb) {
+        auto hextent = aabb.halfExtent;
+        auto center = aabb.center;
 
         foreach(plane; planes) {
-            float d = dot(center, plane.normal);
-            float r = dot(hextent, abs(plane.normal));
+            float d = dot(center, plane.p.xyz);
+            float r = dot(hextent, abs(plane.p.xyz));
 
-            if(d + r < -plane.d) {
+            if(d + r < -plane.p.w) {
                 return false;
             }
         }

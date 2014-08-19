@@ -665,6 +665,20 @@ struct Vector(type, size_t dimension_) {
     return temp;
 }
 
+@safe pure nothrow auto homogeneousPoint(T)(const T v) if(is_vector!T)
+{
+	static if(T.dimension == 4)
+	{
+		return v;
+	}
+	else
+	{
+		auto ret = Vector!(T.vt, 4)(v);
+		ret.w = 1;
+		return ret;
+	}
+}
+
 @safe pure nothrow T componentOp(alias func, T)(T v1, T v2)
 if(is_vector!T)
 {
