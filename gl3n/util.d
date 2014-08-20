@@ -7,12 +7,11 @@ License: MIT
 
 module gl3n.util;
 
-import gl3n.linalg : Vector, Matrix, Quaternion;
+import gl3n.linalg : Quaternion;
 import gl3n.plane : PlaneT;
 
 import std.typecons : TypeTuple;
 
-enum isMatrix(T)		= is(T == Matrix!Args,		Args...);
 enum isQuaternion(T)	= is(T == Quaternion!Args,	Args...);
 enum isPlane(T)			= is(T == PlaneT!Args,		Args...);
 
