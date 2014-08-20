@@ -34,7 +34,7 @@ import smath = std.math;
 
 import gl3n.vector : isVector;
 import gl3n.matrix : isMatrix;
-import gl3n.util : isQuaternion;
+import gl3n.quaternion : isQuaternion;
 
 version(unittest) {
     import gl3n.linalg : vec2, vec2i, vec3, vec3i, quat;

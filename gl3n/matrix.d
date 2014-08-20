@@ -349,7 +349,20 @@ struct Matrix(type, size_t rows_, size_t cols_)
 	}
 	
 	// transposed already tested in last unittest
-	
+
+
+	static if(rows == cols)
+	{
+		@property mt trace() const
+		{
+			mt ret;
+			foreach(i; TupleRange!(0, rows))
+			{
+				ret += matrix[i][i];
+			}
+			return ret;
+		}
+	}
 	
 	static if((rows == 2) && (cols == 2))
 	{
