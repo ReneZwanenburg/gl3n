@@ -8,17 +8,21 @@ import gl3n.matrix;
 ///  type = all values get stored as this type
 struct Quaternion(type)
 {
-	alias type qt; /// Holds the internal type of the quaternion.
-	
-	union
+	alias qt = type; /// Holds the internal type of the quaternion.
+	alias vt = Vector!(qt, 4);
+
+	vt quaternion = vt(0, 0, 0, 1);
+
+	@property
 	{
-		qt[4] quaternion; /// Holds the w, x, y and z coordinates.
-		
-		struct
-		{
-			qt w, x, y, z;
-		}
+		ref inout(qt) x() inout { return quaternion.x; }
+		ref inout(qt) y() inout { return quaternion.y; }
+		ref inout(qt) z() inout { return quaternion.z; }
+		ref inout(qt) w() inout { return quaternion.w; }
+		qt magnitude() const { return quaternion.magnitude; }
+		qt sqrMagnitude() const { return quaternion.sqrMagnitude; }
 	}
+
 	
 	/// Returns a pointer to the quaternion in memory, it starts with the w coordinate.
 	@property auto ptr()
@@ -31,31 +35,6 @@ struct Quaternion(type)
 	{
 		import std.string : format;
 		return format("%s", quaternion);
-	}
-	
-	/// Constructs the quaternion.
-	/// Takes a 4-dimensional vector, where vector.x = the quaternions w coordinate,
-	/// or a w coordinate of type $(I qt) and a 3-dimensional vector representing the imaginary part,
-	/// or 4 values of type $(I qt).
-	this(qt w_, qt x_, qt y_, qt z_)
-	{
-		w = w_;
-		x = x_;
-		y = y_;
-		z = z_;
-	}
-	
-	/// ditto
-	this(qt w_, Vector!(qt, 3) vec)
-	{
-		w = w_;
-		quaternion[1..4] = vec.vector[];
-	}
-	
-	/// ditto
-	this(Vector!(qt, 4) vec)
-	{
-		quaternion[] = vec.vector[];
 	}
 	
 	/// Returns true if all values are not nan and finite, otherwise false.
@@ -82,50 +61,21 @@ struct Quaternion(type)
 		q1.x = 0.0f;
 		assert(q1.isFinite);
 	}
-	
-	/// Returns the squared magnitude of the quaternion.
-	@property real sqrMagnitude() const
-	{
-		return w*w + x*x + y*y + z*z;
-	}
-	
-	/// Returns the magnitude of the quaternion.
-	@property real magnitude() const
-	{
-		import std.math : sqrt;
-		return sqrt(sqrMagnitude);
-	}
-	
-	/// Returns an identity quaternion (w=1, x=0, y=0, z=0).
-	static @property Quaternion identity()
-	{
-		return Quaternion(1, 0, 0, 0);
-	}
-	
-	/// Makes the current quaternion an identity quaternion.
-	void makeIdentity()
-	{
-		w = 1;
-		x = 0;
-		y = 0;
-		z = 0;
-	}
+
 	
 	/// Inverts the quaternion.
 	void invert()
 	{
-		x = -x;
-		y = -y;
-		z = -z;
+		quaternion.xyz = -quaternion.xyz;
 	}
-	alias invert conjugate; /// ditto
 	
 	/// Returns an inverted copy of the current quaternion.
-	@property Quaternion inverse() const
+	@property Quaternion inverted() const
 	{
-		return Quaternion(w, -x, -y, -z);
+		Quaternion ret = this;
+		ret.invert;
+		return ret;
 	}
-	alias inverse conjugated; /// ditto
 	
 	unittest
 	{
@@ -259,36 +209,13 @@ struct Quaternion(type)
 	/// Normalizes the current quaternion.
 	void normalize()
 	{
-		auto m = magnitude;
-		
-		if(m != 0)
-		{
-			w /= m;
-			x /= m;
-			y /= m;
-			z /= m;
-		}
+		quaternion.normalize;
 	}
 	
 	/// Returns a normalized copy of the current quaternion.
 	Quaternion normalized() const
 	{
-		Quaternion ret;
-		auto m = magnitude;
-		
-		if(m != 0)
-		{
-			ret.w = w / m;
-			ret.x = x / m;
-			ret.y = y / m;
-			ret.z = z / m;
-		}
-		else
-		{
-			ret = Quaternion(w, x, y, z);
-		}
-		
-		return ret;
+		return Quaternion(quaternion.normalized);
 	}
 	
 	unittest
@@ -388,7 +315,7 @@ struct Quaternion(type)
 	{
 		if(alpha == 0)
 		{
-			return Quaternion.identity;
+			return Quaternion();
 		}
 		Quaternion ret;
 		
@@ -501,14 +428,7 @@ struct Quaternion(type)
 	Quaternion opBinary(string op)(Quaternion inp) const
 		if((op == "+") || (op == "-"))
 	{
-		Quaternion ret;
-		
-		mixin("ret.w = w" ~ op ~ "inp.w;");
-		mixin("ret.x = x" ~ op ~ "inp.x;");
-		mixin("ret.y = y" ~ op ~ "inp.y;");
-		mixin("ret.z = z" ~ op ~ "inp.z;");
-		
-		return ret;
+		mixin("return Quaternion(quaternion"~op~"inp.quaternion);");
 	}
 	
 	Vector!(qt, 3) opBinary(string op : "*")(Vector!(qt, 3) inp) const
@@ -540,7 +460,7 @@ struct Quaternion(type)
 	
 	Quaternion opBinary(string op : "*")(qt inp) const
 	{
-		return Quaternion(w*inp, x*inp, y*inp, z*inp);
+		return Quaternion(quaternion * inp);
 	}
 	
 	void opOpAssign(string op : "*")(Quaternion inp)

@@ -57,7 +57,7 @@ T slerp(T)(T a, T b, float t) if(isVector!T || isQuaternion!T)
 quat nlerp(quat a, quat b, float t)
 {
     // TODO: tests
-    float dot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
+    float dot = a.quaternion.dot(b.quaternion);
 
     quat result;
     if(dot < 0)
