@@ -1,7 +1,7 @@
 ﻿module gl3n.vector;
 
-import gl3n.util;
-import std.algorithm	: min, max, among;
+import gl3n.util : TupleRange;
+import std.algorithm : min, max, among;
 
 /// Base template for all vector-types.
 /// Params:
@@ -101,8 +101,8 @@ struct Vector(type, size_t dimension_)
 		assert(vec4.e4.vector == [0.0, 0.0, 0.0, 1.0]);
 	}
 
-	enum isCompatibleVector(T) = is(T == Vector!(vt, D), D...) && T.dimension <= dimension;
-	
+	private enum isCompatibleVector(T) = is(T == Vector!(vt, D), D...) && T.dimension <= dimension;
+
 	private void construct(int i, T, Tail...)(T head, Tail tail)
 	{
 		import std.traits : isDynamicArray, isStaticArray;
@@ -160,7 +160,7 @@ struct Vector(type, size_t dimension_)
 	
 	/// ditto
 	this(T)(T vec)
-		if(isVector!T && is(T.vt : vt) && (T.dimension >= dimension))
+	if(isVector!T && is(T.vt : vt) && (T.dimension >= dimension))
 	{
 		foreach(i; TupleRange!(0, dimension))
 		{
@@ -194,10 +194,7 @@ struct Vector(type, size_t dimension_)
 	/// Sets all values of the vector to value.
 	void clear(vt value)
 	{
-		foreach(i; TupleRange!(0, dimension))
-		{
-			vector[i] = value;
-		}
+		vector[] = value;
 	}
 	
 	unittest
@@ -390,24 +387,16 @@ struct Vector(type, size_t dimension_)
 		assert(v4.vector == [3.0f, 4.0f, 5.0f, 6.0f]);
 	}
 	
-	private void dispatchImpl(int i, string s, int size)(ref vt[size] result) const
-	{
-		static if(s.length > 0)
-		{
-			result[i] = vector[coordToIndex!(s[0])];
-			dispatchImpl!(i + 1, s[1..$])(result);
-		}
-	}
-	
 	/// Implements dynamic swizzling.
 	/// Returns: a Vector
 	@property Vector!(vt, s.length) opDispatch(string s)() const
 	{
-		vt[s.length] ret;
-		dispatchImpl!(0, s)(ret);
-		Vector!(vt, s.length) ret_vec;
-		ret_vec.vector = ret;
-		return ret_vec;
+		Vector!(vt, s.length) ret;
+		foreach(i; TupleRange!(0, s.length))
+		{
+			ret[i] = vector[coordToIndex!(s[i])];
+		}
+		return ret;
 	}
 	
 	@property void opDispatch(string s)(Vector!(vt, s.length) v)
@@ -438,7 +427,7 @@ struct Vector(type, size_t dimension_)
 		
 		foreach(index; TupleRange!(0, dimension))
 		{
-			temp += vector[index]^^2;
+			temp += vector[index] * vector[index];
 		}
 		
 		return temp;
@@ -476,7 +465,7 @@ struct Vector(type, size_t dimension_)
 	Vector opUnary(string op : "-")() const
 	{
 		Vector ret;
-		
+
 		foreach(index; TupleRange!(0, dimension))
 		{
 			ret.vector[index] = -vector[index];
@@ -497,41 +486,24 @@ struct Vector(type, size_t dimension_)
 		assert(vec4(-1.0f, 1.0f, -1.0f, 1.0f) == -vec4(1.0f, -1.0f, 1.0f, -1.0f));
 	}
 	
-	Vector opBinary(string op)(vt r) const
-		if(op.among("*", "/"))
+	Vector opBinary(string op, T)(T r) const
+	if(is(T : vt))
 	{
-		Vector ret;
-		
-		foreach(index; TupleRange!(0, dimension))
-		{
-			mixin("ret.vector[index] = vector[index]"~op~"r;");
-		}
-		
-		return ret;
+		return this.opBinary!(op)(Vector(r));
 	}
 	
 	Vector opBinary(string op)(Vector r) const
-		if((op == "+") || (op == "-"))
+	if(op.among("+", "-", "*", "/"))
 	{
-		Vector ret;
-		
-		foreach(index; TupleRange!(0, dimension))
-		{
-			ret.vector[index] = mixin("vector[index]" ~ op ~ "r.vector[index]");
-		}
-		
+		Vector ret = this;
+		mixin("ret"~op~"=r;");
 		return ret;
 	}
 	
-	vt opBinary(string op : "*")(Vector r) const
-	{
-		return dot(this, r);
-	}
-	
 	auto opBinaryRight(string op, T)(T inp) const
-		if(!isVector!T && !isMatrix!T && !isQuaternion!T)
+	if(is(T : vt))
 	{
-		return this.opBinary!(op)(inp);
+		return Vector(inp).opBinary!(op)(this);
 	}
 	
 	unittest
@@ -564,16 +536,14 @@ struct Vector(type, size_t dimension_)
 		assert((v3_2*m3).vector == [24.0f, 30.0f, 36.0f]);
 	}
 	
-	void opOpAssign(string op : "*")(vt r)
+	void opOpAssign(string op, T)(T r)
+	if(is(T : vt))
 	{
-		foreach(index; TupleRange!(0, dimension))
-		{
-			vector[index] *= r;
-		}
+		opOpAssign!op(Vector(r));
 	}
 	
 	void opOpAssign(string op)(Vector r)
-		if((op == "+") || (op == "-"))
+	if(op.among("+", "-", "*", "/"))
 	{
 		foreach(index; TupleRange!(0, dimension))
 		{
@@ -739,7 +709,7 @@ if(isVector!T && (T.dimension == 3))
 @safe pure nothrow T.vt distance(T)(const T veca, const T vecb)
 if(isVector!T)
 {
-	return (veca - vecb).length;
+	return (veca - vecb).magnitude;
 }
 
 unittest
