@@ -85,21 +85,6 @@ struct Vector(type, size_t dimension_)
 		enum Vector e3 = Vector(0, 0, 1, 0); /// ditto
 		enum Vector e4 = Vector(0, 0, 0, 1); /// ditto
 	}
-	
-	unittest
-	{
-		assert(vec2.e1.vector == [1.0, 0.0]);
-		assert(vec2.e2.vector == [0.0, 1.0]);
-		
-		assert(vec3.e1.vector == [1.0, 0.0, 0.0]);
-		assert(vec3.e2.vector == [0.0, 1.0, 0.0]);
-		assert(vec3.e3.vector == [0.0, 0.0, 1.0]);
-		
-		assert(vec4.e1.vector == [1.0, 0.0, 0.0, 0.0]);
-		assert(vec4.e2.vector == [0.0, 1.0, 0.0, 0.0]);
-		assert(vec4.e3.vector == [0.0, 0.0, 1.0, 0.0]);
-		assert(vec4.e4.vector == [0.0, 0.0, 0.0, 1.0]);
-	}
 
 	private enum isCompatibleVector(T) = is(T == Vector!(vt, D), D...) && T.dimension <= dimension;
 
@@ -197,69 +182,6 @@ struct Vector(type, size_t dimension_)
 		vector[] = value;
 	}
 	
-	unittest
-	{
-		vec3 vec_clear;
-		assert(!vec_clear.isFinite);
-		vec_clear.clear(1.0f);
-		assert(vec_clear.isFinite);
-		assert(vec_clear.vector == [1.0f, 1.0f, 1.0f]);
-		assert(vec_clear.vector == vec3(1.0f).vector);
-		vec_clear.clear(float.infinity);
-		assert(!vec_clear.isFinite);
-		vec_clear.clear(float.nan);
-		assert(!vec_clear.isFinite);
-		vec_clear.clear(1.0f);
-		assert(vec_clear.isFinite);
-		
-		vec4 b = vec4(1.0f, vec_clear);
-		assert(b.isFinite);
-		assert(b.vector == [1.0f, 1.0f, 1.0f, 1.0f]);
-		assert(b.vector == vec4(1.0f).vector);
-		
-		vec2 v2_1 = vec2(vec2(0.0f, 1.0f));
-		assert(v2_1.vector == [0.0f, 1.0f]);
-		
-		vec2 v2_2 = vec2(1.0f, 1.0f);
-		assert(v2_2.vector == [1.0f, 1.0f]);
-		
-		vec3 v3 = vec3(v2_1, 2.0f);
-		assert(v3.vector == [0.0f, 1.0f, 2.0f]);
-		
-		vec4 v4_1 = vec4(1.0f, vec2(2.0f, 3.0f), 4.0f);
-		assert(v4_1.vector == [1.0f, 2.0f, 3.0f, 4.0f]);
-		assert(vec3(v4_1).vector == [1.0f, 2.0f, 3.0f]);
-		assert(vec2(vec3(v4_1)).vector == [1.0f, 2.0f]);
-		assert(vec2(vec3(v4_1)).vector == vec2(v4_1).vector);
-		assert(v4_1.vector == vec4([1.0f, 2.0f, 3.0f, 4.0f]).vector);
-		
-		vec4 v4_2 = vec4(vec2(1.0f, 2.0f), vec2(3.0f, 4.0f));
-		assert(v4_2.vector == [1.0f, 2.0f, 3.0f, 4.0f]);
-		assert(vec3(v4_2).vector == [1.0f, 2.0f, 3.0f]);
-		assert(vec2(vec3(v4_2)).vector == [1.0f, 2.0f]);
-		assert(vec2(vec3(v4_2)).vector == vec2(v4_2).vector);
-		assert(v4_2.vector == vec4([1.0f, 2.0f, 3.0f, 4.0f]).vector);
-		
-		float[2] f2 = [1.0f, 2.0f];
-		float[3] f3 = [1.0f, 2.0f, 3.0f];
-		float[4] f4 = [1.0f, 2.0f, 3.0f, 4.0f];
-		assert(vec2(1.0f, 2.0f).vector == vec2(f2).vector);
-		assert(vec3(1.0f, 2.0f, 3.0f).vector == vec3(f3).vector);
-		assert(vec3(1.0f, 2.0f, 3.0f).vector == vec3(f2, 3.0f).vector);
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f).vector == vec4(f4).vector);
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f).vector == vec4(f3, 4.0f).vector);
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f).vector == vec4(f2, 3.0f, 4.0f).vector);
-		// useful for: "vec4 v4 = […]" or "vec4 v4 = other_vector.rgba"
-		
-		assert(vec3(vec3i(1, 2, 3)) == vec3(1.0, 2.0, 3.0));
-		assert(vec3d(vec3(1.0, 2.0, 3.0)) == vec3d(1.0, 2.0, 3.0));
-		
-		static assert(!__traits(compiles, vec3(0.0f, 0.0f)));
-		static assert(!__traits(compiles, vec4(0.0f, 0.0f, 0.0f)));
-		static assert(!__traits(compiles, vec4(0.0f, vec2(0.0f, 0.0f))));
-		static assert(!__traits(compiles, vec4(vec3(0.0f, 0.0f, 0.0f))));
-	}
-	
 	template coordToIndex(char c)
 	{
 		static if(c.among('x', 'r', 'u', 's'))
@@ -310,82 +232,7 @@ struct Vector(type, size_t dimension_)
 			vector[3] = w;
 		}
 	}
-	
-	unittest
-	{
-		vec2 v2 = vec2(1.0f, 2.0f);
-		assert(v2.x == 1.0f);
-		assert(v2.y == 2.0f);
-		v2.x = 3.0f;
-		v2.x += 1;
-		v2.x -= 1;
-		assert(v2.vector == [3.0f, 2.0f]);
-		v2.y = 4.0f;
-		v2.y += 1;
-		v2.y -= 1;
-		assert(v2.vector == [3.0f, 4.0f]);
-		assert((v2.x == 3.0f) && (v2.x == v2.u) && (v2.x == v2.s) && (v2.x == v2.r));
-		assert(v2.y == 4.0f);
-		assert((v2.y == 4.0f) && (v2.y == v2.v) && (v2.y == v2.t) && (v2.y == v2.g));
-		v2.set(0.0f, 1.0f);
-		assert(v2.vector == [0.0f, 1.0f]);
-		v2.update(vec2(3.0f, 4.0f));
-		assert(v2.vector == [3.0f, 4.0f]);
-		
-		vec3 v3 = vec3(1.0f, 2.0f, 3.0f);
-		assert(v3.x == 1.0f);
-		assert(v3.y == 2.0f);
-		assert(v3.z == 3.0f);
-		v3.x = 3.0f;
-		v3.x += 1;
-		v3.x -= 1;
-		assert(v3.vector == [3.0f, 2.0f, 3.0f]);
-		v3.y = 4.0f;
-		v3.y += 1;
-		v3.y -= 1;
-		assert(v3.vector == [3.0f, 4.0f, 3.0f]);
-		v3.z = 5.0f;
-		v3.z += 1;
-		v3.z -= 1;
-		assert(v3.vector == [3.0f, 4.0f, 5.0f]);
-		assert((v3.x == 3.0f) && (v3.x == v3.s) && (v3.x == v3.r));
-		assert((v3.y == 4.0f) && (v3.y == v3.t) && (v3.y == v3.g));
-		assert((v3.z == 5.0f) && (v3.z == v3.p) && (v3.z == v3.b));
-		v3.set(0.0f, 1.0f, 2.0f);
-		assert(v3.vector == [0.0f, 1.0f, 2.0f]);
-		v3.update(vec3(3.0f, 4.0f, 5.0f));
-		assert(v3.vector == [3.0f, 4.0f, 5.0f]);
-		
-		vec4 v4 = vec4(1.0f, 2.0f, vec2(3.0f, 4.0f));
-		assert(v4.x == 1.0f);
-		assert(v4.y == 2.0f);
-		assert(v4.z == 3.0f);
-		assert(v4.w == 4.0f);
-		v4.x = 3.0f;
-		v4.x += 1;
-		v4.x -= 1;
-		assert(v4.vector == [3.0f, 2.0f, 3.0f, 4.0f]);
-		v4.y = 4.0f;
-		v4.y += 1;
-		v4.y -= 1;
-		assert(v4.vector == [3.0f, 4.0f, 3.0f, 4.0f]);
-		v4.z = 5.0f;
-		v4.z += 1;
-		v4.z -= 1;
-		assert(v4.vector == [3.0f, 4.0f, 5.0f, 4.0f]);
-		v4.w = 6.0f;
-		v4.w += 1;
-		v4.w -= 1;
-		assert(v4.vector == [3.0f, 4.0f, 5.0f, 6.0f]);
-		assert((v4.x == 3.0f) && (v4.x == v4.s) && (v4.x == v4.r));
-		assert((v4.y == 4.0f) && (v4.y == v4.t) && (v4.y == v4.g));
-		assert((v4.z == 5.0f) && (v4.z == v4.p) && (v4.z == v4.b));
-		assert((v4.w == 6.0f) && (v4.w == v4.q) && (v4.w == v4.a));
-		v4.set(0.0f, 1.0f, 2.0f, 3.0f);
-		assert(v4.vector == [0.0f, 1.0f, 2.0f, 3.0f]);
-		v4.update(vec4(3.0f, 4.0f, 5.0f, 6.0f));
-		assert(v4.vector == [3.0f, 4.0f, 5.0f, 6.0f]);
-	}
+
 	
 	/// Implements dynamic swizzling.
 	/// Returns: a Vector
@@ -405,19 +252,6 @@ struct Vector(type, size_t dimension_)
 		{
 			vector[coordToIndex!(s[i])] = v[i];
 		}
-	}
-	
-	unittest
-	{
-		vec2 v2 = vec2(1.0f, 2.0f);
-		assert(v2.xytsy == [1.0f, 2.0f, 2.0f, 1.0f, 2.0f]);
-		
-		assert(vec3(1.0f, 2.0f, 3.0f).xybzyr == [1.0f, 2.0f, 3.0f, 3.0f, 2.0f, 1.0f]);
-		assert(vec4(v2, 3.0f, 4.0f).xyzwrgbastpq == [1.0f, 2.0f, 3.0f, 4.0f,
-			1.0f, 2.0f, 3.0f, 4.0f,
-			1.0f, 2.0f, 3.0f, 4.0f]);
-		assert(vec4(v2, 3.0f, 4.0f).wgyzax == [4.0f, 2.0f, 2.0f, 3.0f, 4.0f, 1.0f]);
-		assert(vec4(v2.xyst).vector == [1.0f, 2.0f, 1.0f, 2.0f]);
 	}
 	
 	/// Returns the squared magnitude of the vector.
@@ -474,18 +308,6 @@ struct Vector(type, size_t dimension_)
 		return ret;
 	}
 	
-	unittest
-	{
-		assert(vec2(1.0f, 1.0f) == -vec2(-1.0f, -1.0f));
-		assert(vec2(-1.0f, 1.0f) == -vec2(1.0f, -1.0f));
-		
-		assert(-vec3(1.0f, 1.0f, 1.0f) == vec3(-1.0f, -1.0f, -1.0f));
-		assert(-vec3(-1.0f, 1.0f, -1.0f) == vec3(1.0f, -1.0f, 1.0f));
-		
-		assert(vec4(1.0f, 1.0f, 1.0f, 1.0f) == -vec4(-1.0f, -1.0f, -1.0f, -1.0f));
-		assert(vec4(-1.0f, 1.0f, -1.0f, 1.0f) == -vec4(1.0f, -1.0f, 1.0f, -1.0f));
-	}
-	
 	Vector opBinary(string op, T)(T r) const
 	if(is(T : vt))
 	{
@@ -504,36 +326,6 @@ struct Vector(type, size_t dimension_)
 	if(is(T : vt))
 	{
 		return Vector(inp).opBinary!(op)(this);
-	}
-	
-	unittest
-	{
-		vec2 v2 = vec2(1.0f, 3.0f);
-		auto v2times2 = 2 * v2;
-		assert((v2*2.5f).vector == [2.5f, 7.5f]);
-		assert((v2+vec2(3.0f, 1.0f)).vector == [4.0f, 4.0f]);
-		assert((v2-vec2(1.0f, 3.0f)).vector == [0.0f, 0.0f]);
-		assert((v2*vec2(2.0f, 2.0f)) == 8.0f);
-		
-		vec3 v3 = vec3(1.0f, 3.0f, 5.0f);
-		assert((v3*2.5f).vector == [2.5f, 7.5f, 12.5f]);
-		assert((v3+vec3(3.0f, 1.0f, -1.0f)).vector == [4.0f, 4.0f, 4.0f]);
-		assert((v3-vec3(1.0f, 3.0f, 5.0f)).vector == [0.0f, 0.0f, 0.0f]);
-		assert((v3*vec3(2.0f, 2.0f, 2.0f)) == 18.0f);
-		
-		vec4 v4 = vec4(1.0f, 3.0f, 5.0f, 7.0f);
-		assert((v4*2.5f).vector == [2.5f, 7.5f, 12.5f, 17.5]);
-		assert((v4+vec4(3.0f, 1.0f, -1.0f, -3.0f)).vector == [4.0f, 4.0f, 4.0f, 4.0f]);
-		assert((v4-vec4(1.0f, 3.0f, 5.0f, 7.0f)).vector == [0.0f, 0.0f, 0.0f, 0.0f]);
-		assert((v4*vec4(2.0f, 2.0f, 2.0f, 2.0f)) == 32.0f);
-		
-		mat2 m2 = mat2(1.0f, 2.0f, 3.0f, 4.0f);
-		vec2 v2_2 = vec2(2.0f, 2.0f);
-		assert((v2_2*m2).vector == [8.0f, 12.0f]);
-		
-		mat3 m3 = mat3(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
-		vec3 v3_2 = vec3(2.0f, 2.0f, 2.0f);
-		assert((v3_2*m3).vector == [24.0f, 30.0f, 36.0f]);
 	}
 	
 	void opOpAssign(string op, T)(T r)
@@ -566,45 +358,6 @@ struct Vector(type, size_t dimension_)
 		return vector[index];
 	}
 	
-	unittest
-	{
-		vec2 v2 = vec2(1.0f, 3.0f);
-		v2 *= 2.5f;
-		assert(v2.vector == [2.5f, 7.5f]);
-		v2 -= vec2(2.5f, 7.5f);
-		assert(v2.vector == [0.0f, 0.0f]);
-		v2 += vec2(1.0f, 3.0f);
-		assert(v2.vector == [1.0f, 3.0f]);
-		assert(v2.length == sqrt(10.0f));
-		assert(v2.length_squared == 10.0f);
-		assert((v2.magnitude == v2.length) && (v2.sqrMagnitude == v2.length_squared));
-		assert(almostEqual(v2.normalized, vec2(1.0f/sqrt(10.0f), 3.0f/sqrt(10.0f))));
-		
-		vec3 v3 = vec3(1.0f, 3.0f, 5.0f);
-		v3 *= 2.5f;
-		assert(v3.vector == [2.5f, 7.5f, 12.5f]);
-		v3 -= vec3(2.5f, 7.5f, 12.5f);
-		assert(v3.vector == [0.0f, 0.0f, 0.0f]);
-		v3 += vec3(1.0f, 3.0f, 5.0f);
-		assert(v3.vector == [1.0f, 3.0f, 5.0f]);
-		assert(v3.length == sqrt(35.0f));
-		assert(v3.length_squared == 35.0f);
-		assert((v3.magnitude == v3.length) && (v3.sqrMagnitude == v3.length_squared));
-		assert(almostEqual(v3.normalized, vec3(1.0f/sqrt(35.0f), 3.0f/sqrt(35.0f), 5.0f/sqrt(35.0f))));
-		
-		vec4 v4 = vec4(1.0f, 3.0f, 5.0f, 7.0f);
-		v4 *= 2.5f;
-		assert(v4.vector == [2.5f, 7.5f, 12.5f, 17.5]);
-		v4 -= vec4(2.5f, 7.5f, 12.5f, 17.5f);
-		assert(v4.vector == [0.0f, 0.0f, 0.0f, 0.0f]);
-		v4 += vec4(1.0f, 3.0f, 5.0f, 7.0f);
-		assert(v4.vector == [1.0f, 3.0f, 5.0f, 7.0f]);
-		assert(v4.length == sqrt(84.0f));
-		assert(v4.length_squared == 84.0f);
-		assert((v4.magnitude == v4.length) && (v4.sqrMagnitude == v4.length_squared));
-		assert(almostEqual(v4.normalized, vec4(1.0f/sqrt(84.0f), 3.0f/sqrt(84.0f), 5.0f/sqrt(84.0f), 7.0f/sqrt(84.0f))));
-	}
-	
 	int opCmp(ref const Vector vec) const
 	{
 		foreach(i, a; vector)
@@ -625,40 +378,6 @@ struct Vector(type, size_t dimension_)
 	
 	bool opCast(T : bool)() const {
 		return isFinite;
-	}
-	
-	unittest
-	{
-		assert(vec2(1.0f, 2.0f) == vec2(1.0f, 2.0f));
-		assert(vec2(1.0f, 2.0f) != vec2(1.0f, 1.0f));
-		assert(vec2(1.0f, 2.0f) == vec2d(1.0, 2.0));
-		assert(vec2(1.0f, 2.0f) != vec2d(1.0, 1.0));
-		assert(vec2(1.0f, 2.0f) == vec2(1.0f, 2.0f).vector);
-		assert(vec2(1.0f, 2.0f) != vec2(1.0f, 1.0f).vector);
-		assert(vec2(1.0f, 2.0f) == vec2d(1.0, 2.0).vector);
-		assert(vec2(1.0f, 2.0f) != vec2d(1.0, 1.0).vector);
-		
-		assert(vec3(1.0f, 2.0f, 3.0f) == vec3(1.0f, 2.0f, 3.0f));
-		assert(vec3(1.0f, 2.0f, 3.0f) != vec3(1.0f, 2.0f, 2.0f));
-		assert(vec3(1.0f, 2.0f, 3.0f) == vec3d(1.0, 2.0, 3.0));
-		assert(vec3(1.0f, 2.0f, 3.0f) != vec3d(1.0, 2.0, 2.0));
-		assert(vec3(1.0f, 2.0f, 3.0f) == vec3(1.0f, 2.0f, 3.0f).vector);
-		assert(vec3(1.0f, 2.0f, 3.0f) != vec3(1.0f, 2.0f, 2.0f).vector);
-		assert(vec3(1.0f, 2.0f, 3.0f) == vec3d(1.0, 2.0, 3.0).vector);
-		assert(vec3(1.0f, 2.0f, 3.0f) != vec3d(1.0, 2.0, 2.0).vector);
-		
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) == vec4(1.0f, 2.0f, 3.0f, 4.0f));
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) != vec4(1.0f, 2.0f, 3.0f, 3.0f));
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) == vec4d(1.0, 2.0, 3.0, 4.0));
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) != vec4d(1.0, 2.0, 3.0, 3.0));
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) == vec4(1.0f, 2.0f, 3.0f, 4.0f).vector);
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) != vec4(1.0f, 2.0f, 3.0f, 3.0f).vector);
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) == vec4d(1.0, 2.0, 3.0, 4.0).vector);
-		assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) != vec4d(1.0, 2.0, 3.0, 3.0).vector);
-		
-		assert(!(vec4(float.nan)));
-		if(vec4(1.0f)) { }
-		else { assert(false); }
 	}
 	
 }
@@ -722,23 +441,6 @@ if(isVector!T)
 	return (veca - vecb).magnitude;
 }
 
-unittest
-{
-	// dot is already tested in Vector.opBinary, so no need for testing with more vectors
-	vec3 v1 = vec3(1.0f, 2.0f, -3.0f);
-	vec3 v2 = vec3(1.0f, 3.0f, 2.0f);
-	
-	assert(dot(v1, v2) == 1.0f);
-	assert(dot(v1, v2) == (v1 * v2));
-	assert(dot(v1, v2) == dot(v2, v1));
-	assert((v1 * v2) == (v1 * v2));
-	
-	assert(cross(v1, v2).vector == [13.0f, -5.0f, 1.0f]);
-	assert(cross(v2, v1).vector == [-13.0f, 5.0f, -1.0f]);
-	
-	assert(distance(vec2(0.0f, 0.0f), vec2(0.0f, 10.0f)) == 10.0);
-}
-
 /// Pre-defined vector types, the number represents the dimension and the last letter the type (none = float, d = double, i = int).
 alias Vector!(float, 2) vec2;
 alias Vector!(float, 3) vec3; /// ditto
@@ -753,3 +455,303 @@ alias Vector!(int, 3) vec3i; /// ditto
 alias Vector!(int, 4) vec4i; /// ditto
 
 enum isVector(T)		= is(T == Vector!Args,		Args...);
+
+
+
+unittest
+{
+	assert(vec2.e1.vector == [1.0, 0.0]);
+	assert(vec2.e2.vector == [0.0, 1.0]);
+	
+	assert(vec3.e1.vector == [1.0, 0.0, 0.0]);
+	assert(vec3.e2.vector == [0.0, 1.0, 0.0]);
+	assert(vec3.e3.vector == [0.0, 0.0, 1.0]);
+	
+	assert(vec4.e1.vector == [1.0, 0.0, 0.0, 0.0]);
+	assert(vec4.e2.vector == [0.0, 1.0, 0.0, 0.0]);
+	assert(vec4.e3.vector == [0.0, 0.0, 1.0, 0.0]);
+	assert(vec4.e4.vector == [0.0, 0.0, 0.0, 1.0]);
+}
+
+unittest
+{
+	vec3 vec_clear;
+	assert(vec_clear.isFinite);
+	vec_clear.clear(1.0f);
+	assert(vec_clear.isFinite);
+	assert(vec_clear.vector == [1.0f, 1.0f, 1.0f]);
+	assert(vec_clear.vector == vec3(1.0f).vector);
+	vec_clear.clear(float.infinity);
+	assert(!vec_clear.isFinite);
+	vec_clear.clear(float.nan);
+	assert(!vec_clear.isFinite);
+	vec_clear.clear(1.0f);
+	assert(vec_clear.isFinite);
+	
+	vec4 b = vec4(1.0f, vec_clear);
+	assert(b.isFinite);
+	assert(b.vector == [1.0f, 1.0f, 1.0f, 1.0f]);
+	assert(b.vector == vec4(1.0f).vector);
+	
+	vec2 v2_1 = vec2(vec2(0.0f, 1.0f));
+	assert(v2_1.vector == [0.0f, 1.0f]);
+	
+	vec2 v2_2 = vec2(1.0f, 1.0f);
+	assert(v2_2.vector == [1.0f, 1.0f]);
+	
+	vec3 v3 = vec3(v2_1, 2.0f);
+	assert(v3.vector == [0.0f, 1.0f, 2.0f]);
+	
+	vec4 v4_1 = vec4(1.0f, vec2(2.0f, 3.0f), 4.0f);
+	assert(v4_1.vector == [1.0f, 2.0f, 3.0f, 4.0f]);
+	assert(vec3(v4_1).vector == [1.0f, 2.0f, 3.0f]);
+	assert(vec2(vec3(v4_1)).vector == [1.0f, 2.0f]);
+	assert(vec2(vec3(v4_1)).vector == vec2(v4_1).vector);
+	assert(v4_1.vector == vec4([1.0f, 2.0f, 3.0f, 4.0f]).vector);
+	
+	vec4 v4_2 = vec4(vec2(1.0f, 2.0f), vec2(3.0f, 4.0f));
+	assert(v4_2.vector == [1.0f, 2.0f, 3.0f, 4.0f]);
+	assert(vec3(v4_2).vector == [1.0f, 2.0f, 3.0f]);
+	assert(vec2(vec3(v4_2)).vector == [1.0f, 2.0f]);
+	assert(vec2(vec3(v4_2)).vector == vec2(v4_2).vector);
+	assert(v4_2.vector == vec4([1.0f, 2.0f, 3.0f, 4.0f]).vector);
+	
+	float[2] f2 = [1.0f, 2.0f];
+	float[3] f3 = [1.0f, 2.0f, 3.0f];
+	float[4] f4 = [1.0f, 2.0f, 3.0f, 4.0f];
+	assert(vec2(1.0f, 2.0f).vector == vec2(f2).vector);
+	assert(vec3(1.0f, 2.0f, 3.0f).vector == vec3(f3).vector);
+	assert(vec3(1.0f, 2.0f, 3.0f).vector == vec3(f2, 3.0f).vector);
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f).vector == vec4(f4).vector);
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f).vector == vec4(f3, 4.0f).vector);
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f).vector == vec4(f2, 3.0f, 4.0f).vector);
+	// useful for: "vec4 v4 = […]" or "vec4 v4 = other_vector.rgba"
+	
+	assert(vec3(vec3i(1, 2, 3)) == vec3(1.0, 2.0, 3.0));
+	assert(vec3d(vec3(1.0, 2.0, 3.0)) == vec3d(1.0, 2.0, 3.0));
+	
+	static assert(!__traits(compiles, vec3(0.0f, 0.0f)));
+	static assert(!__traits(compiles, vec4(0.0f, 0.0f, 0.0f)));
+	static assert(!__traits(compiles, vec4(0.0f, vec2(0.0f, 0.0f))));
+	static assert(!__traits(compiles, vec4(vec3(0.0f, 0.0f, 0.0f))));
+}
+
+unittest
+{
+	vec2 v2 = vec2(1.0f, 2.0f);
+	assert(v2.x == 1.0f);
+	assert(v2.y == 2.0f);
+	v2.x = 3.0f;
+	v2.x += 1;
+	v2.x -= 1;
+	assert(v2.vector == [3.0f, 2.0f]);
+	v2.y = 4.0f;
+	v2.y += 1;
+	v2.y -= 1;
+	assert(v2.vector == [3.0f, 4.0f]);
+	assert((v2.x == 3.0f) && (v2.x == v2.u) && (v2.x == v2.s) && (v2.x == v2.r));
+	assert(v2.y == 4.0f);
+	assert((v2.y == 4.0f) && (v2.y == v2.v) && (v2.y == v2.t) && (v2.y == v2.g));
+	v2.set(0.0f, 1.0f);
+	assert(v2.vector == [0.0f, 1.0f]);
+	v2.update(vec2(3.0f, 4.0f));
+	assert(v2.vector == [3.0f, 4.0f]);
+	
+	vec3 v3 = vec3(1.0f, 2.0f, 3.0f);
+	assert(v3.x == 1.0f);
+	assert(v3.y == 2.0f);
+	assert(v3.z == 3.0f);
+	v3.x = 3.0f;
+	v3.x += 1;
+	v3.x -= 1;
+	assert(v3.vector == [3.0f, 2.0f, 3.0f]);
+	v3.y = 4.0f;
+	v3.y += 1;
+	v3.y -= 1;
+	assert(v3.vector == [3.0f, 4.0f, 3.0f]);
+	v3.z = 5.0f;
+	v3.z += 1;
+	v3.z -= 1;
+	assert(v3.vector == [3.0f, 4.0f, 5.0f]);
+	assert((v3.x == 3.0f) && (v3.x == v3.s) && (v3.x == v3.r));
+	assert((v3.y == 4.0f) && (v3.y == v3.t) && (v3.y == v3.g));
+	assert((v3.z == 5.0f) && (v3.z == v3.p) && (v3.z == v3.b));
+	v3.set(0.0f, 1.0f, 2.0f);
+	assert(v3.vector == [0.0f, 1.0f, 2.0f]);
+	v3.update(vec3(3.0f, 4.0f, 5.0f));
+	assert(v3.vector == [3.0f, 4.0f, 5.0f]);
+	
+	vec4 v4 = vec4(1.0f, 2.0f, vec2(3.0f, 4.0f));
+	assert(v4.x == 1.0f);
+	assert(v4.y == 2.0f);
+	assert(v4.z == 3.0f);
+	assert(v4.w == 4.0f);
+	v4.x = 3.0f;
+	v4.x += 1;
+	v4.x -= 1;
+	assert(v4.vector == [3.0f, 2.0f, 3.0f, 4.0f]);
+	v4.y = 4.0f;
+	v4.y += 1;
+	v4.y -= 1;
+	assert(v4.vector == [3.0f, 4.0f, 3.0f, 4.0f]);
+	v4.z = 5.0f;
+	v4.z += 1;
+	v4.z -= 1;
+	assert(v4.vector == [3.0f, 4.0f, 5.0f, 4.0f]);
+	v4.w = 6.0f;
+	v4.w += 1;
+	v4.w -= 1;
+	assert(v4.vector == [3.0f, 4.0f, 5.0f, 6.0f]);
+	assert((v4.x == 3.0f) && (v4.x == v4.s) && (v4.x == v4.r));
+	assert((v4.y == 4.0f) && (v4.y == v4.t) && (v4.y == v4.g));
+	assert((v4.z == 5.0f) && (v4.z == v4.p) && (v4.z == v4.b));
+	assert((v4.w == 6.0f) && (v4.w == v4.q) && (v4.w == v4.a));
+	v4.set(0.0f, 1.0f, 2.0f, 3.0f);
+	assert(v4.vector == [0.0f, 1.0f, 2.0f, 3.0f]);
+	v4.update(vec4(3.0f, 4.0f, 5.0f, 6.0f));
+	assert(v4.vector == [3.0f, 4.0f, 5.0f, 6.0f]);
+}
+
+unittest
+{
+	vec2 v2 = vec2(1.0f, 2.0f);
+	assert(v2.xytsy == [1.0f, 2.0f, 2.0f, 1.0f, 2.0f]);
+	
+	assert(vec3(1.0f, 2.0f, 3.0f).xybzyr == [1.0f, 2.0f, 3.0f, 3.0f, 2.0f, 1.0f]);
+	assert(vec4(v2, 3.0f, 4.0f).xyzwrgbastpq == [1.0f, 2.0f, 3.0f, 4.0f,
+		1.0f, 2.0f, 3.0f, 4.0f,
+		1.0f, 2.0f, 3.0f, 4.0f]);
+	assert(vec4(v2, 3.0f, 4.0f).wgyzax == [4.0f, 2.0f, 2.0f, 3.0f, 4.0f, 1.0f]);
+	assert(vec4(v2.xyst).vector == [1.0f, 2.0f, 1.0f, 2.0f]);
+}
+
+unittest
+{
+	assert(vec2(1.0f, 1.0f) == -vec2(-1.0f, -1.0f));
+	assert(vec2(-1.0f, 1.0f) == -vec2(1.0f, -1.0f));
+	
+	assert(-vec3(1.0f, 1.0f, 1.0f) == vec3(-1.0f, -1.0f, -1.0f));
+	assert(-vec3(-1.0f, 1.0f, -1.0f) == vec3(1.0f, -1.0f, 1.0f));
+	
+	assert(vec4(1.0f, 1.0f, 1.0f, 1.0f) == -vec4(-1.0f, -1.0f, -1.0f, -1.0f));
+	assert(vec4(-1.0f, 1.0f, -1.0f, 1.0f) == -vec4(1.0f, -1.0f, 1.0f, -1.0f));
+}
+
+unittest
+{
+	vec2 v2 = vec2(1.0f, 3.0f);
+	auto v2times2 = 2 * v2;
+	assert((v2*2.5f).vector == [2.5f, 7.5f]);
+	assert((v2+vec2(3.0f, 1.0f)).vector == [4.0f, 4.0f]);
+	assert((v2-vec2(1.0f, 3.0f)).vector == [0.0f, 0.0f]);
+	assert((v2*vec2(2.0f, 2.0f)) == 8.0f);
+	
+	vec3 v3 = vec3(1.0f, 3.0f, 5.0f);
+	assert((v3*2.5f).vector == [2.5f, 7.5f, 12.5f]);
+	assert((v3+vec3(3.0f, 1.0f, -1.0f)).vector == [4.0f, 4.0f, 4.0f]);
+	assert((v3-vec3(1.0f, 3.0f, 5.0f)).vector == [0.0f, 0.0f, 0.0f]);
+	assert((v3*vec3(2.0f, 2.0f, 2.0f)) == 18.0f);
+	
+	vec4 v4 = vec4(1.0f, 3.0f, 5.0f, 7.0f);
+	assert((v4*2.5f).vector == [2.5f, 7.5f, 12.5f, 17.5]);
+	assert((v4+vec4(3.0f, 1.0f, -1.0f, -3.0f)).vector == [4.0f, 4.0f, 4.0f, 4.0f]);
+	assert((v4-vec4(1.0f, 3.0f, 5.0f, 7.0f)).vector == [0.0f, 0.0f, 0.0f, 0.0f]);
+	assert((v4*vec4(2.0f, 2.0f, 2.0f, 2.0f)) == 32.0f);
+	
+	mat2 m2 = mat2(1.0f, 2.0f, 3.0f, 4.0f);
+	vec2 v2_2 = vec2(2.0f, 2.0f);
+	assert((v2_2*m2).vector == [8.0f, 12.0f]);
+	
+	mat3 m3 = mat3(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
+	vec3 v3_2 = vec3(2.0f, 2.0f, 2.0f);
+	assert((v3_2*m3).vector == [24.0f, 30.0f, 36.0f]);
+}
+
+unittest
+{
+	vec2 v2 = vec2(1.0f, 3.0f);
+	v2 *= 2.5f;
+	assert(v2.vector == [2.5f, 7.5f]);
+	v2 -= vec2(2.5f, 7.5f);
+	assert(v2.vector == [0.0f, 0.0f]);
+	v2 += vec2(1.0f, 3.0f);
+	assert(v2.vector == [1.0f, 3.0f]);
+	assert(v2.length == sqrt(10.0f));
+	assert(v2.length_squared == 10.0f);
+	assert((v2.magnitude == v2.length) && (v2.sqrMagnitude == v2.length_squared));
+	assert(almostEqual(v2.normalized, vec2(1.0f/sqrt(10.0f), 3.0f/sqrt(10.0f))));
+	
+	vec3 v3 = vec3(1.0f, 3.0f, 5.0f);
+	v3 *= 2.5f;
+	assert(v3.vector == [2.5f, 7.5f, 12.5f]);
+	v3 -= vec3(2.5f, 7.5f, 12.5f);
+	assert(v3.vector == [0.0f, 0.0f, 0.0f]);
+	v3 += vec3(1.0f, 3.0f, 5.0f);
+	assert(v3.vector == [1.0f, 3.0f, 5.0f]);
+	assert(v3.length == sqrt(35.0f));
+	assert(v3.length_squared == 35.0f);
+	assert((v3.magnitude == v3.length) && (v3.sqrMagnitude == v3.length_squared));
+	assert(almostEqual(v3.normalized, vec3(1.0f/sqrt(35.0f), 3.0f/sqrt(35.0f), 5.0f/sqrt(35.0f))));
+	
+	vec4 v4 = vec4(1.0f, 3.0f, 5.0f, 7.0f);
+	v4 *= 2.5f;
+	assert(v4.vector == [2.5f, 7.5f, 12.5f, 17.5]);
+	v4 -= vec4(2.5f, 7.5f, 12.5f, 17.5f);
+	assert(v4.vector == [0.0f, 0.0f, 0.0f, 0.0f]);
+	v4 += vec4(1.0f, 3.0f, 5.0f, 7.0f);
+	assert(v4.vector == [1.0f, 3.0f, 5.0f, 7.0f]);
+	assert(v4.length == sqrt(84.0f));
+	assert(v4.length_squared == 84.0f);
+	assert((v4.magnitude == v4.length) && (v4.sqrMagnitude == v4.length_squared));
+	assert(almostEqual(v4.normalized, vec4(1.0f/sqrt(84.0f), 3.0f/sqrt(84.0f), 5.0f/sqrt(84.0f), 7.0f/sqrt(84.0f))));
+}
+
+unittest
+{
+	assert(vec2(1.0f, 2.0f) == vec2(1.0f, 2.0f));
+	assert(vec2(1.0f, 2.0f) != vec2(1.0f, 1.0f));
+	assert(vec2(1.0f, 2.0f) == vec2d(1.0, 2.0));
+	assert(vec2(1.0f, 2.0f) != vec2d(1.0, 1.0));
+	assert(vec2(1.0f, 2.0f) == vec2(1.0f, 2.0f).vector);
+	assert(vec2(1.0f, 2.0f) != vec2(1.0f, 1.0f).vector);
+	assert(vec2(1.0f, 2.0f) == vec2d(1.0, 2.0).vector);
+	assert(vec2(1.0f, 2.0f) != vec2d(1.0, 1.0).vector);
+	
+	assert(vec3(1.0f, 2.0f, 3.0f) == vec3(1.0f, 2.0f, 3.0f));
+	assert(vec3(1.0f, 2.0f, 3.0f) != vec3(1.0f, 2.0f, 2.0f));
+	assert(vec3(1.0f, 2.0f, 3.0f) == vec3d(1.0, 2.0, 3.0));
+	assert(vec3(1.0f, 2.0f, 3.0f) != vec3d(1.0, 2.0, 2.0));
+	assert(vec3(1.0f, 2.0f, 3.0f) == vec3(1.0f, 2.0f, 3.0f).vector);
+	assert(vec3(1.0f, 2.0f, 3.0f) != vec3(1.0f, 2.0f, 2.0f).vector);
+	assert(vec3(1.0f, 2.0f, 3.0f) == vec3d(1.0, 2.0, 3.0).vector);
+	assert(vec3(1.0f, 2.0f, 3.0f) != vec3d(1.0, 2.0, 2.0).vector);
+	
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) == vec4(1.0f, 2.0f, 3.0f, 4.0f));
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) != vec4(1.0f, 2.0f, 3.0f, 3.0f));
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) == vec4d(1.0, 2.0, 3.0, 4.0));
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) != vec4d(1.0, 2.0, 3.0, 3.0));
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) == vec4(1.0f, 2.0f, 3.0f, 4.0f).vector);
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) != vec4(1.0f, 2.0f, 3.0f, 3.0f).vector);
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) == vec4d(1.0, 2.0, 3.0, 4.0).vector);
+	assert(vec4(1.0f, 2.0f, 3.0f, 4.0f) != vec4d(1.0, 2.0, 3.0, 3.0).vector);
+	
+	assert(!(vec4(float.nan)));
+	if(vec4(1.0f)) { }
+	else { assert(false); }
+}
+
+unittest
+{
+	vec3 v1 = vec3(1.0f, 2.0f, -3.0f);
+	vec3 v2 = vec3(1.0f, 3.0f, 2.0f);
+	
+	assert(dot(v1, v2) == 1.0f);
+	assert(dot(v1, v2) == (v1 * v2));
+	assert(dot(v1, v2) == dot(v2, v1));
+	assert((v1 * v2) == (v1 * v2));
+	
+	assert(cross(v1, v2).vector == [13.0f, -5.0f, 1.0f]);
+	assert(cross(v2, v1).vector == [-13.0f, 5.0f, -1.0f]);
+	
+	assert(distance(vec2(0.0f, 0.0f), vec2(0.0f, 10.0f)) == 10.0);
+}
