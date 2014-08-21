@@ -3,7 +3,8 @@
 
 module gl3n.frustum;
 
-import gl3n.linalg : vec4, mat4, dot;
+import gl3n.vector;
+import gl3n.matrix;
 import gl3n.math : abs;
 import gl3n.aabb : AABB;
 import gl3n.plane : Plane;

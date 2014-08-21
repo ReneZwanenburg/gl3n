@@ -1,6 +1,7 @@
 ﻿module gl3n.matrix;
 
 import gl3n.vector;
+import gl3n.util;
 import std.traits : isFloatingPoint, isIntegral;
 import std.algorithm : reduce, min;
 import std.math : sin, cos, tan, PI;

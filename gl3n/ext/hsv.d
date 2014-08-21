@@ -2,7 +2,7 @@ module gl3n.ext.hsv;
 
 import std.conv : to;
 
-import gl3n.linalg : vec3, vec4;
+import gl3n.vector;
 import gl3n.math : min, max, floor;
 
 version(unittest) {

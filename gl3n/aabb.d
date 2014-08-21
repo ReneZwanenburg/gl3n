@@ -1,6 +1,6 @@
 module gl3n.aabb;
 
-import gl3n.linalg : Vector, componentMin, componentMax;
+import gl3n.vector;
 import gl3n.math : almostEqual, min, max;
 import std.range : isInputRange, ElementType;
 import std.array;

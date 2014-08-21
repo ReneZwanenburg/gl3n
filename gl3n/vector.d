@@ -1,6 +1,6 @@
 ﻿module gl3n.vector;
 
-import gl3n.util : TupleRange;
+import gl3n.util;
 import std.algorithm : min, max, among;
 
 /// Base template for all vector-types.
