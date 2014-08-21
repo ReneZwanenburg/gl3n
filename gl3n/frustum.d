@@ -38,45 +38,14 @@ struct Frustum
     /// mvp = a model-view-projection matrix
     this(mat4 mvp)
 	{
-        mvp.transpose(); // we store the matrix row-major
-        
         planes =
 		[
-            Plane(vec4(
-				mvp[0][3] + mvp[0][0],
-				mvp[1][3] + mvp[1][0],
-				mvp[2][3] + mvp[2][0],
-				mvp[3][3] + mvp[3][0])),
-
-            Plane(vec4(
-				mvp[0][3] - mvp[0][0],
-				mvp[1][3] - mvp[1][0],
-				mvp[2][3] - mvp[2][0],
-				mvp[3][3] - mvp[3][0])),
-
-            Plane(vec4(
-				mvp[0][3] + mvp[0][1],
-				mvp[1][3] + mvp[1][1],
-				mvp[2][3] + mvp[2][1],
-				mvp[3][3] + mvp[3][1])),
-
-            Plane(vec4(
-				mvp[0][3] - mvp[0][1],
-				mvp[1][3] - mvp[1][1],
-				mvp[2][3] - mvp[2][1],
-				mvp[3][3] - mvp[3][1])),
-
-            Plane(vec4(
-				mvp[0][3] + mvp[0][2],
-				mvp[1][3] + mvp[1][2],
-				mvp[2][3] + mvp[2][2],
-				mvp[3][3] + mvp[3][2])),
-
-            Plane(vec4(
-				mvp[0][3] - mvp[0][2],
-				mvp[1][3] - mvp[1][2],
-				mvp[2][3] - mvp[2][2],
-				mvp[3][3] - mvp[3][2]))
+            Plane(mvp[3] + mvp[0]),
+            Plane(mvp[3] - mvp[0]),
+            Plane(mvp[3] + mvp[1]),
+            Plane(mvp[3] - mvp[1]),
+			Plane(mvp[3] + mvp[2]),
+            Plane(mvp[3] - mvp[2])
         ];
 
         normalize();
