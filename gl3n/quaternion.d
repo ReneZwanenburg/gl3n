@@ -105,7 +105,7 @@ struct Quaternion(type)
 	/// Params:
 	///  matrix = 3x3 matrix (rotation)
 	/// Returns: A quaternion representing the rotation (3x3 matrix)
-	static Quaternion fromMatrix(Matrix!(qt, 3, 3) mat)
+	static Quaternion fromMatrix(Matrix!(qt, 3) mat)
 	{
 		import std.math : sqrt;
 		Quaternion ret;

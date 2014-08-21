@@ -555,6 +555,16 @@ struct Vector(type, size_t dimension_)
 	{
 		return vector[];
 	}
+
+	ref inout(vt) opIndex(size_t index) inout
+	in
+	{
+		assert(index < dimension);
+	}
+	body
+	{
+		return vector[index];
+	}
 	
 	unittest
 	{
