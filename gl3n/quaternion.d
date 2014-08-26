@@ -33,16 +33,13 @@ struct Quaternion(type)
 	/// Returns the current vector formatted as string, useful for printing the quaternion.
 	@property string toString()
 	{
-		import std.string : format;
-		return format("%s", quaternion);
+		return quaternion.toString();
 	}
 	
 	/// Returns true if all values are not nan and finite, otherwise false.
 	@property bool isFinite() const
 	{
-		import std.algorithm : all;
-		import std.math : isFinite;
-		return quaternion[].all!isFinite;
+		return quaternion.isFinite;
 	}
 	
 	unittest

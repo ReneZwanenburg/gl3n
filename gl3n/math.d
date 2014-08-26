@@ -79,14 +79,7 @@ if(isVector!T)
 T abs(T)(T quat)
 if(isQuaternion!T)
 {
-    T ret;
-
-    ret.quaternion[0] = abs(quat.quaternion[0]);
-    ret.quaternion[1] = abs(quat.quaternion[1]);
-    ret.quaternion[2] = abs(quat.quaternion[2]);
-    ret.quaternion[3] = abs(quat.quaternion[3]);
-
-    return ret;
+    return T(quat.quaternion.abs);
 }
 
 unittest
