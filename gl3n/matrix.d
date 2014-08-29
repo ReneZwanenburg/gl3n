@@ -273,7 +273,7 @@ struct Matrix(type, size_t dimension_)
 			return (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]);
 		}
 
-		private Matrix invert(ref Matrix mat) const
+		private void invert(ref Matrix mat) const
 		{
 			static if(isFloatingPoint!mt && ReciprocalMul)
 			{
@@ -288,15 +288,13 @@ struct Matrix(type, size_t dimension_)
 			else
 			{
 				mt d = det;
-				
+
 				mat = Matrix
 				(
 					matrix[1][1]/d, -matrix[0][1]/d,
 					-matrix[1][0]/d, matrix[0][0]/d
 				);
 			}
-
-			return mat;
 		}
 	}
 	else static if(dimension == 3)
@@ -311,7 +309,7 @@ struct Matrix(type, size_t dimension_)
 			- matrix[0][0] * matrix[1][2] * matrix[2][1]);
 		}
 		
-		private Matrix invert(ref Matrix mat) const
+		private void invert(ref Matrix mat) const
 		{
 			static if(isFloatingPoint!mt && ReciprocalMul)
 			{
@@ -335,8 +333,6 @@ struct Matrix(type, size_t dimension_)
                          (matrix[0][1] * matrix[2][0] - matrix[0][0] * matrix[2][1])`~op~`d,
                          (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0])`~op~`d);
             `);
-
-			return mat;
 		}
 	}
 	else static if(dimension == 4)
@@ -358,7 +354,7 @@ struct Matrix(type, size_t dimension_)
 			- matrix[0][1] * matrix[1][0] * matrix[2][2] * matrix[3][3] + matrix[0][0] * matrix[1][1] * matrix[2][2] * matrix[3][3]);
 		}
 
-		private Matrix invert(ref Matrix mat) const
+		private void invert(ref Matrix mat) const
 		{
 			static if(isFloatingPoint!mt && ReciprocalMul)
 			{
@@ -406,8 +402,6 @@ struct Matrix(type, size_t dimension_)
                           (matrix[0][0] * matrix[1][1] * matrix[2][2] + matrix[0][1] * matrix[1][2] * matrix[2][0] + matrix[0][2] * matrix[1][0] * matrix[2][1]
                          -matrix[0][0] * matrix[1][2] * matrix[2][1] - matrix[0][1] * matrix[1][0] * matrix[2][2] - matrix[0][2] * matrix[1][1] * matrix[2][0])`~op~`d);
             `);
-			
-			return mat;
 		}
 	}
 
