@@ -28,7 +28,7 @@ public {
 import std.conv : to;
 import std.algorithm : all;
 import std.array : zip;
-import std.traits : CommonType;
+import std.traits : CommonType, isNumeric;
 import std.range : ElementType;
 import smath = std.math;
 
@@ -37,13 +37,14 @@ import gl3n.matrix : isMatrix;
 import gl3n.quaternion : isQuaternion;
 
 version(unittest) {
-    import gl3n.linalg : vec2, vec2i, vec3, vec3i, quat;
+	import gl3n.vector;
+	import gl3n.quaternion;
 }
 
 public enum real DegToRad	= PI / 180;
 public enum real RadToDeg	= 180 / PI;
 
-public enum real Epsilon	= 0.000001f;
+public enum real Epsilon	= 0.00001f;
 
 /// Modulus. Returns x - y * floor(x/y).
 T mod(T)(T x, T y)
@@ -79,7 +80,7 @@ if(isVector!T)
 T abs(T)(T quat)
 if(isQuaternion!T)
 {
-    return T(quat.quaternion.abs);
+    return T(abs(quat.quaternion));
 }
 
 unittest
@@ -95,7 +96,7 @@ unittest
     assert(abs(vec3(-1, 0, -12)) == vec3(1, 0, 12));
     assert(abs(vec3i(12, 12, 12)) == vec3(12, 12, 12));
 
-    assert(abs(quat(-1.0f, 0.0f, 1.0f, -12.0f)) == quat(1.0f, 0.0f, 1.0f, 12.0f));
+    assert(abs(quat(vec4(-1.0f, 0.0f, 1.0f, -12.0f))) == quat(vec4(1.0f, 0.0f, 1.0f, 12.0f)));
 }
 
 /// Returns 1/sqrt(x), results are undefined if x <= 0.
@@ -140,7 +141,7 @@ unittest
 
 /// Compares to values and returns true if the difference is epsilon or smaller.
 bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon)
-if(!isVector!T && !isQuaternion!T)
+if(isNumeric!T && isNumeric!S)
 {
 	return abs(a-b) <= epsilon;
 }
@@ -157,6 +158,20 @@ if(isVector!T && isVector!S && T.dimension == S.dimension)
         }
     }
     return true;
+}
+
+bool almostEqual(T, S)(T a, S b, float epsilon = Epsilon)
+if(isMatrix!T && isMatrix!S && T.dimension == S.dimension)
+{
+	foreach(i; 0..T.dimension)
+	{
+		if(!almostEqual(a[i], b[i], epsilon))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 bool almostEqual(T)(T a, T b, float epsilon = Epsilon)
@@ -177,16 +192,17 @@ unittest
 	assert(almostEqual(0, 0));
 	assert(almostEqual(1, 1));
 	assert(almostEqual(-1, -1));    
+
 	assert(almostEqual(0f, 0.000001f, 0.000001f));
-	assert(almostEqual(1f, 1.1f, 0.1f));
+	assert(almostEqual(1f, 1.1f, 0.100001f));
 	assert(!almostEqual(1f, 1.1f, 0.01f));
 
 	assert(almostEqual(vec2i(0, 0), vec2(0.0f, 0.0f)));
 	assert(almostEqual(vec2(0.0f, 0.0f), vec2(0.000001f, 0.000001f)));
 	assert(almostEqual(vec3(0.0f, 1.0f, 2.0f), vec3i(0, 1, 2)));
 
-	assert(almostEqual(quat(0.0f, 0.0f, 0.0f, 0.0f), quat(0.0f, 0.0f, 0.0f, 0.0f)));
-	assert(almostEqual(quat(0.0f, 0.0f, 0.0f, 0.0f), quat(0.000001f, 0.000001f, 0.000001f, 0.000001f)));
+	assert(almostEqual(quat(vec4(0.0f, 0.0f, 0.0f, 0.0f)), quat(vec4(0.0f, 0.0f, 0.0f, 0.0f))));
+	assert(almostEqual(quat(vec4(0.0f, 0.0f, 0.0f, 0.0f)), quat(vec4(0.000001f, 0.000001f, 0.000001f, 0.000001f))));
 }
 
 /// Returns min(max(x, min_val), max_val), Results are undefined if min_val > max_val.

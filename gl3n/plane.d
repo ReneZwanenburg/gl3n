@@ -23,19 +23,6 @@ if(isFloatingPoint!type)
         this.p = p;
     }
 
-    unittest
-	{
-        auto p = PlaneT(vt(0.0f, 1.0f, 2.0f, 3.0f));
-        assert(p.p == vt(0.0f, 1.0f, 2.0f, 3.0f));
-
-        p.p.x = 4.0f;
-        assert(p.normal == vt(4.0f, 1.0f, 2.0f));
-        assert(p.a == 4.0f);
-        assert(p.b == 1.0f);
-        assert(p.c == 2.0f);
-        assert(p.d == 3.0f);
-    }
-
     /// Normalizes the plane inplace.
     void normalize()
 	{
@@ -50,15 +37,10 @@ if(isFloatingPoint!type)
         return ret;
     }
 
-    unittest
+	@property const(Vector!(type, 3)) normal()
 	{
-        auto p = PlaneT(vt(0.0f, 1.0f, 2.0f), 3.0f);
-        auto pn = p.normalized();
-        assert(pn.normal == vec3(0.0f, 1.0f, 2.0f).normalized);
-        assert(almostEqual(pn.d, 3.0f/vt(0.0f, 1.0f, 2.0f).length));
-        p.normalize();
-        assert(p == pn);
-    }
+		return p.xyz;
+	}
 
     /// Returns the distance from a point to the plane.
     /// Note: the plane $(RED must) be normalized, the result can be negative.
@@ -75,14 +57,36 @@ if(isFloatingPoint!type)
 	{
 		return normalized.distance(point);
     }
-
-    unittest
-	{
-        auto p = PlaneT(vt(-1.0f, 4.0f, 19.0f), -10.0f);
-        assert(almostEqual(p.ndistance(vt(5.0f, -2.0f, 0.0f)), -1.182992));
-        assert(almostEqual(p.ndistance(vt(5.0f, -2.0f, 0.0f)),
-                            p.normalized.distance(vt(5.0f, -2.0f, 0.0f))));
-    }
 }
 
 alias PlaneT!(float) Plane;
+
+enum isPlane(T) = is(T == PlaneT!Args, Args...);
+
+
+unittest
+{
+	auto p = Plane(vec4(0.0f, 1.0f, 2.0f, 3.0f));
+	assert(p.p == vec4(0.0f, 1.0f, 2.0f, 3.0f));
+	
+	p.p.x = 4.0f;
+	assert(p.normal == vec3(4.0f, 1.0f, 2.0f));
+}
+
+unittest
+{
+	auto p = Plane(vec4(0.0f, 1.0f, 2.0f, 3.0f));
+	auto pn = p.normalized();
+	assert(pn.normal == vec3(0.0f, 1.0f, 2.0f).normalized);
+	assert(almostEqual(pn.p.w, 3.0f/vec3(0.0f, 1.0f, 2.0f).magnitude));
+	p.normalize();
+	assert(p == pn);
+}
+
+unittest
+{
+	auto p = Plane(vec4(-1.0f, 4.0f, 19.0f, -10.0f));
+	assert(almostEqual(p.ndistance(vec3(5.0f, -2.0f, 0.0f)), -1.182992));
+	assert(almostEqual(p.ndistance(vec3(5.0f, -2.0f, 0.0f)),
+	                   p.normalized.distance(vec3(5.0f, -2.0f, 0.0f))));
+}

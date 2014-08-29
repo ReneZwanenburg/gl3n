@@ -43,7 +43,7 @@ T slerp(T)(T a, T b, float t) if(isVector!T || isQuaternion!T)
     }
 	else if(almostEqual(theta, PI))
 	{ // 180°?
-        return interp(a, b, t);
+        return lerp(a, b, t);
     }
 	else
 	{ // slerp
@@ -106,22 +106,22 @@ unittest
 	assert(lerp(0.0f, 1.0f, 0.0f) == 0.0f);
 	assert(lerp(0.0f, 1.0f, 1.0f) == 1.0f);
     
-    quat q1 = quat(1.0f, 1.0f, 1.0f, 1.0f);
-    quat q2 = quat(0.0f, 0.0f, 0.0f, 0.0f);
+    quat q1 = quat(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	quat q2 = quat(vec4(0.0f, 0.0f, 0.0f, 0.0f));
     
 	assert(lerp(q1, q2, 0.0f).quaternion == q1.quaternion);
 	assert(lerp(q1, q2, 0.5f).quaternion == [0.5f, 0.5f, 0.5f, 0.5f]);
 	assert(lerp(q1, q2, 1.0f).quaternion == q2.quaternion);
     
-    assert(slerp(v2_1, v2_2, 0.0).vector == v2_1.vector);
-	assert(slerp(v2_1, v2_2, 1.0).vector == v2_2.vector);
-	assert(slerp(v3_1, v3_2, 0.0).vector == v3_1.vector);
-	assert(slerp(v3_1, v3_2, 1.0).vector == v3_2.vector);
-	assert(slerp(v4_1, v4_2, 0.0).vector == v4_1.vector);
-	assert(slerp(v4_1, v4_2, 1.0).vector == v4_2.vector);
+    assert(slerp(v2_1, v2_2, 0.0) == v2_1);
+	assert(slerp(v2_1, v2_2, 1.0) == v2_2);
+	assert(slerp(v3_1, v3_2, 0.0) == v3_1);
+	assert(slerp(v3_1, v3_2, 1.0) == v3_2);
+	assert(slerp(v4_1, v4_2, 0.0) == v4_1);
+	assert(slerp(v4_1, v4_2, 1.0) == v4_2);
     
-	assert(slerp(q1, q2, 0.0f).quaternion == q1.quaternion);
-	assert(slerp(q1, q2, 1.0f).quaternion == q2.quaternion);
+	assert(slerp(q1, q2, 0.0f) == q1);
+	assert(slerp(q1, q2, 1.0f) == q2);
 }
 
 

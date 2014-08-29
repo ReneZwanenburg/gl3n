@@ -41,23 +41,6 @@ struct Quaternion(type)
 	{
 		return quaternion.isFinite;
 	}
-	
-	unittest
-	{
-		quat q1 = quat(0.0f, 0.0f, 0.0f, 1.0f);
-		assert(q1.quaternion == [0.0f, 0.0f, 0.0f, 1.0f]);
-		assert(q1.quaternion == quat(0.0f, 0.0f, 0.0f, 1.0f).quaternion);
-		assert(q1.quaternion == quat(0.0f, vec3(0.0f, 0.0f, 1.0f)).quaternion);
-		assert(q1.quaternion == quat(vec4(0.0f, 0.0f, 0.0f, 1.0f)).quaternion);
-		
-		assert(q1.isFinite);
-		q1.x = float.infinity;
-		assert(!q1.isFinite);
-		q1.x = float.nan;
-		assert(!q1.isFinite);
-		q1.x = 0.0f;
-		assert(q1.isFinite);
-	}
 
 	
 	/// Inverts the quaternion.
@@ -72,30 +55,6 @@ struct Quaternion(type)
 		Quaternion ret = this;
 		ret.invert;
 		return ret;
-	}
-	
-	unittest
-	{
-		quat q1 = quat(1.0f, 1.0f, 1.0f, 1.0f);
-		
-		assert(q1.magnitude == 2.0f);
-		assert(q1.sqrMagnitude == 4.0f);
-		assert(q1.magnitude == quat(0.0f, 0.0f, 2.0f, 0.0f).magnitude);
-		
-		quat q2 = quat.identity;
-		assert(q2.quaternion == [1.0f, 0.0f, 0.0f, 0.0f]);
-		assert(q2.x == 0.0f);
-		assert(q2.y == 0.0f);
-		assert(q2.z == 0.0f);
-		assert(q2.w == 1.0f);
-		
-		assert(q1.inverse.quaternion == [1.0f, -1.0f, -1.0f, -1.0f]);
-		q1.invert();
-		assert(q1.quaternion == [1.0f, -1.0f, -1.0f, -1.0f]);
-		
-		q1.makeIdentity();
-		assert(q1.quaternion == q2.quaternion);
-		
 	}
 	
 	/// Creates a quaternion from a 3x3 matrix.
@@ -153,54 +112,26 @@ struct Quaternion(type)
 	/// Params:
 	///  rows = number of rows of the resulting matrix (min 3)
 	///  cols = number of columns of the resulting matrix (min 3)
-	Matrix!(qt, rows, cols) toMatrix(int rows, int cols)() const
-		if((rows >= 3) && (cols >= 3))
+	Matrix!(qt, dimension) toMatrix(size_t dimension)() const
+		if(dimension >= 3)
 	{
-		static if((rows == 3) && (cols == 3))
-		{
-			Matrix!(qt, rows, cols) ret;
-		}
-		else
-		{
-			Matrix!(qt, rows, cols) ret = Matrix!(qt, rows, cols).identity;
-		}
-		
-		qt xx = x^^2;
+		Matrix!(qt, dimension) ret;
+
+		qt xx = x * x;
 		qt xy = x * y;
 		qt xz = x * z;
 		qt xw = x * w;
-		qt yy = y^^2;
+		qt yy = y * y;
 		qt yz = y * z;
 		qt yw = y * w;
-		qt zz = z^^2;
+		qt zz = z * z;
 		qt zw = z * w;
 		
-		ret.matrix[0][0..3] = [1 - 2 * (yy + zz), 2 * (xy - zw), 2 * (xz + yw)];
-		ret.matrix[1][0..3] = [2 * (xy + zw), 1 - 2 * (xx + zz), 2 * (yz - xw)];
-		ret.matrix[2][0..3] = [2 * (xz - yw), 2 * (yz + xw), 1 - 2 * (xx + yy)];
+		ret.matrix[0][0..3][] = [1 - 2 * (yy + zz), 2 * (xy - zw), 2 * (xz + yw)];
+		ret.matrix[1][0..3][] = [2 * (xy + zw), 1 - 2 * (xx + zz), 2 * (yz - xw)];
+		ret.matrix[2][0..3][] = [2 * (xz - yw), 2 * (yz + xw), 1 - 2 * (xx + yy)];
 		
 		return ret;
-	}
-	
-	unittest
-	{
-		quat q1 = quat(4.0f, 1.0f, 2.0f, 3.0f);
-		
-		assert(q1.toMatrix!(3, 3).matrix == [[-25.0f, -20.0f, 22.0f], [28.0f, -19.0f, 4.0f], [-10.0f, 20.0f, -9.0f]]);
-		assert(q1.toMatrix!(4, 4).matrix == [[-25.0f, -20.0f, 22.0f, 0.0f],
-			[28.0f, -19.0f, 4.0f, 0.0f],
-			[-10.0f, 20.0f, -9.0f, 0.0f],
-			[0.0f, 0.0f, 0.0f, 1.0f]]);
-		assert(quat.identity.toMatrix!(3, 3).matrix == Matrix!(qt, 3, 3).identity.matrix);
-		assert(q1.quaternion == quat.fromMatrix(q1.toMatrix!(3, 3)).quaternion);
-		
-		assert(quat(1.0f, 0.0f, 0.0f, 0.0f).quaternion == quat.fromMatrix(mat3.identity).quaternion);
-		
-		quat q2 = quat.fromMatrix(mat3(1.0f, 3.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
-		assert(q2.x == 0.0f);
-		assert(almostEqual(q2.y, 0.7071067f));
-		assert(almostEqual(q2.z, -1.060660));
-		assert(almostEqual(q2.w, 0.7071067f));
 	}
 	
 	/// Normalizes the current quaternion.
@@ -213,17 +144,6 @@ struct Quaternion(type)
 	Quaternion normalized() const
 	{
 		return Quaternion(quaternion.normalized);
-	}
-	
-	unittest
-	{
-		quat q1 = quat(1.0f, 2.0f, 3.0f, 4.0f);
-		quat q2 = quat(1.0f, 2.0f, 3.0f, 4.0f);
-		
-		q1.normalize();
-		assert(q1.quaternion == q2.normalized.quaternion);
-		//assert(q1.quaternion == q1.normalized.quaternion);
-		assert(almostEqual(q1.magnitude, 1.0));
 	}
 	
 	/// Returns the yaw.
@@ -245,24 +165,6 @@ struct Quaternion(type)
 	{
 		import std.math : atan2;
 		return atan2(2 * (w*z + x*y), w^^2 - x^^2 + y^^2 - z^^2);
-	}
-	
-	unittest
-	{
-		quat q1 = quat.identity;
-		assert(q1.pitch == 0.0f);
-		assert(q1.yaw == 0.0f);
-		assert(q1.roll == 0.0f);
-		
-		quat q2 = quat(1.0f, 1.0f, 1.0f, 1.0f);
-		assert(almostEqual(q2.yaw, q2.roll));
-		assert(almostEqual(q2.yaw, 1.570796f));
-		assert(q2.pitch == 0.0f);
-		
-		quat q3 = quat(0.1f, 1.9f, 2.1f, 1.3f);
-		assert(almostEqual(q3.yaw, 2.4382f));
-		assert(isNaN(q3.pitch));
-		assert(almostEqual(q3.roll, 1.67719f));
 	}
 	
 	/// Returns a quaternion with applied rotation around the x-axis.
@@ -381,30 +283,6 @@ struct Quaternion(type)
 		return this;
 	}
 	
-	unittest
-	{
-		assert(quat.xRotation(PI).quaternion[1..4] == [1.0f, 0.0f, 0.0f]);
-		assert(quat.yRotation(PI).quaternion[1..4] == [0.0f, 1.0f, 0.0f]);
-		assert(quat.zRotation(PI).quaternion[1..4] == [0.0f, 0.0f, 1.0f]);
-		assert((quat.xRotation(PI).w == quat.yRotation(PI).w) && (quat.yRotation(PI).w == quat.zRotation(PI).w));
-		//assert(quat.rotateX(PI).w == to!(quat.qt)(cos(PI)));
-		assert(quat.xRotation(PI).quaternion == quat.identity.rotateX(PI).quaternion);
-		assert(quat.yRotation(PI).quaternion == quat.identity.rotateY(PI).quaternion);
-		assert(quat.zRotation(PI).quaternion == quat.identity.rotateZ(PI).quaternion);
-		
-		assert(quat.axisRotation(PI, vec3(1.0f, 1.0f, 1.0f)).quaternion[1..4] == [1.0f, 1.0f, 1.0f]);
-		assert(quat.axisRotation(PI, vec3(1.0f, 1.0f, 1.0f)).w == quat.xRotation(PI).w);
-		assert(quat.axisRotation(PI, vec3(1.0f, 1.0f, 1.0f)).quaternion ==
-		       quat.identity.rotateAxis(PI, vec3(1.0f, 1.0f, 1.0f)).quaternion);
-		
-		quat q1 = quat.eulerRotation(PI, PI, PI);
-		assert((q1.x > -1e-16) && (q1.x < 1e-16));
-		assert((q1.y > -1e-16) && (q1.y < 1e-16));
-		assert((q1.z > -1e-16) && (q1.z < 1e-16));
-		assert(q1.w == -1.0f);
-		assert(quat.eulerRotation(PI, PI, PI).quaternion == quat.identity.rotateEuler(PI, PI, PI).quaternion);
-	}
-	
 	Quaternion opBinary(string op : "*")(Quaternion inp) const
 	{
 		Quaternion ret;
@@ -486,48 +364,6 @@ struct Quaternion(type)
 		quaternion[3] *= inp;
 	}
 	
-	unittest
-	{
-		quat q1 = quat.identity;
-		quat q2 = quat(3.0f, 0.0f, 1.0f, 2.0f);
-		quat q3 = quat(3.4f, 0.1f, 1.2f, 2.3f);
-		
-		assert((q1 * q1).quaternion == q1.quaternion);
-		assert((q1 * q2).quaternion == q2.quaternion);
-		assert((q2 * q1).quaternion == q2.quaternion);
-		quat q4 = q3 * q2;
-		assert((q2 * q3).quaternion != q4.quaternion);
-		q3 *= q2;
-		assert(q4.quaternion == q3.quaternion);
-		assert(almostEqual(q4.x, 0.4f));
-		assert(almostEqual(q4.y, 6.8f));
-		assert(almostEqual(q4.z, 13.8f));
-		assert(almostEqual(q4.w, 4.4f));
-		
-		quat q5 = quat(1.0f, 2.0f, 3.0f, 4.0f);
-		quat q6 = quat(3.0f, 1.0f, 6.0f, 2.0f);
-		
-		assert((q5 - q6).quaternion == [-2.0f, 1.0f, -3.0f, 2.0f]);
-		assert((q5 + q6).quaternion == [4.0f, 3.0f, 9.0f, 6.0f]);
-		assert((q6 - q5).quaternion == [2.0f, -1.0f, 3.0f, -2.0f]);
-		assert((q6 + q5).quaternion == [4.0f, 3.0f, 9.0f, 6.0f]);
-		q5 += q6;
-		assert(q5.quaternion == [4.0f, 3.0f, 9.0f, 6.0f]);
-		q6 -= q6;
-		assert(q6.quaternion == [0.0f, 0.0f, 0.0f, 0.0f]);
-		
-		quat q7 = quat(2.0f, 2.0f, 2.0f, 2.0f);
-		assert((q7 * 2).quaternion == [4.0f, 4.0f, 4.0f, 4.0f]);
-		assert((2 * q7).quaternion == (q7 * 2).quaternion);
-		q7 *= 2;
-		assert(q7.quaternion == [4.0f, 4.0f, 4.0f, 4.0f]);
-		
-		vec3 v1 = vec3(1.0f, 2.0f, 3.0f);
-		assert((q1 * v1).vector == v1.vector);
-		assert((v1 * q1).vector == (q1 * v1).vector);
-		assert((q2 * v1).vector == [-2.0f, 36.0f, 38.0f]);
-	}
-	
 	const int opCmp(ref const Quaternion qua) const
 	{
 		foreach(i, a; quaternion)
@@ -556,19 +392,183 @@ struct Quaternion(type)
 		return isFinite;
 	}
 	
-	unittest
-	{
-		assert(quat(1.0f, 2.0f, 3.0f, 4.0f) == quat(1.0f, 2.0f, 3.0f, 4.0f));
-		assert(quat(1.0f, 2.0f, 3.0f, 4.0f) != quat(1.0f, 2.0f, 3.0f, 3.0f));
-		
-		assert(!(quat(float.nan, float.nan, float.nan, float.nan)));
-		if(quat(1.0f, 1.0f, 1.0f, 1.0f)) { }
-		else { assert(false); }
-	}
-	
 }
 
 /// Pre-defined quaternion of type float.
 alias Quaternion!(float) quat;
 
 enum isQuaternion(T)	= is(T == Quaternion!Args,	Args...);
+
+
+unittest
+{
+	quat q1 = quat(vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	assert(q1.quaternion.vector == [0.0f, 0.0f, 0.0f, 1.0f]);
+	
+	assert(q1.isFinite);
+	q1.x = float.infinity;
+	assert(!q1.isFinite);
+	q1.x = float.nan;
+	assert(!q1.isFinite);
+	q1.x = 0.0f;
+	assert(q1.isFinite);
+}
+
+unittest
+{
+	quat q1 = quat(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	
+	assert(q1.magnitude == 2.0f);
+	assert(q1.sqrMagnitude == 4.0f);
+	assert(q1.magnitude == quat(vec4(0.0f, 0.0f, 2.0f, 0.0f)).magnitude);
+	
+	quat q2 = quat();
+	assert(q2.quaternion.vector == [0.0f, 0.0f, 0.0f, 1.0f]);
+	assert(q2.x == 0.0f);
+	assert(q2.y == 0.0f);
+	assert(q2.z == 0.0f);
+	assert(q2.w == 1.0f);
+	
+	assert(q1.inverted.quaternion.vector == [-1.0f, -1.0f, -1.0f, 1.0f]);
+	q1.invert();
+	assert(q1.quaternion.vector == [-1.0f, -1.0f, -1.0f, 1.0f]);
+
+	q1 = quat();
+	assert(q1.quaternion == q2.quaternion);
+}
+
+unittest
+{
+	import gl3n.math : almostEqual;
+
+	quat q1 = quat(vec4(1.0f, 2.0f, 3.0f, 4.0));
+	
+	assert(q1.toMatrix!(3).matrix == [vec3(-25.0f, -20.0f, 22.0f), vec3(28.0f, -19.0f, 4.0f), vec3(-10.0f, 20.0f, -9.0f)]);
+	assert(q1.toMatrix!(4).matrix == [
+		vec4(-25.0f, -20.0f, 22.0f, 0.0f),
+		vec4(28.0f, -19.0f, 4.0f, 0.0f),
+		vec4(-10.0f, 20.0f, -9.0f, 0.0f),
+		vec4(0.0f, 0.0f, 0.0f, 1.0f)]);
+	assert(quat().toMatrix!(3).matrix == Matrix!(float, 3)().matrix);
+	assert(q1.quaternion == quat.fromMatrix(q1.toMatrix!(3)).quaternion);
+	
+	assert(quat(vec4(0.0f, 0.0f, 0.0f, 1.0f)).quaternion == quat.fromMatrix(mat3()).quaternion);
+	
+	quat q2 = quat.fromMatrix(mat3(1.0f, 3.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+	assert(q2.x == 0.0f);
+	assert(almostEqual(q2.y, 0.7071067f));
+	assert(almostEqual(q2.z, -1.060660));
+	assert(almostEqual(q2.w, 0.7071067f));
+}
+
+unittest
+{
+	import gl3n.math : almostEqual;
+	import std.math : isNaN;
+
+	quat q1 = quat();
+	assert(q1.pitch == 0.0f);
+	assert(q1.yaw == 0.0f);
+	assert(q1.roll == 0.0f);
+	
+	quat q2 = quat(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	assert(almostEqual(q2.yaw, q2.roll));
+	assert(almostEqual(q2.yaw, 1.570796f));
+	assert(q2.pitch == 0.0f);
+	
+	quat q3 = quat(vec4(1.9f, 2.1f, 1.3f, 0.1f));
+	assert(almostEqual(q3.yaw, 2.4382f));
+	assert(isNaN(q3.pitch));
+	assert(almostEqual(q3.roll, 1.67719f));
+}
+
+unittest
+{
+	import gl3n.math : almostEqual;
+
+	quat q1 = quat(vec4(2.0f, 3.0f, 4.0f, 1.0f));
+	quat q2 = quat(vec4(2.0f, 3.0f, 4.0f, 1.0f));
+	
+	q1.normalize();
+	assert(q1.quaternion == q2.normalized.quaternion);
+	//assert(q1.quaternion == q1.normalized.quaternion);
+	assert(almostEqual(q1.magnitude, 1.0));
+}
+
+unittest
+{
+	assert(quat.xRotation(PI).quaternion[0..3] == [1.0f, 0.0f, 0.0f]);
+	assert(quat.yRotation(PI).quaternion[0..3] == [0.0f, 1.0f, 0.0f]);
+	assert(quat.zRotation(PI).quaternion[0..3] == [0.0f, 0.0f, 1.0f]);
+	assert((quat.xRotation(PI).w == quat.yRotation(PI).w) && (quat.yRotation(PI).w == quat.zRotation(PI).w));
+
+	assert(quat.xRotation(PI).quaternion == quat().rotateX(PI).quaternion);
+	assert(quat.yRotation(PI).quaternion == quat().rotateY(PI).quaternion);
+	assert(quat.zRotation(PI).quaternion == quat().rotateZ(PI).quaternion);
+	
+	assert(quat.axisRotation(PI, vec3(1.0f, 1.0f, 1.0f)).quaternion[0..3] == [1.0f, 1.0f, 1.0f]);
+	assert(quat.axisRotation(PI, vec3(1.0f, 1.0f, 1.0f)).w == quat.xRotation(PI).w);
+	assert(quat.axisRotation(PI, vec3(1.0f, 1.0f, 1.0f)).quaternion ==
+	       quat().rotateAxis(PI, vec3(1.0f, 1.0f, 1.0f)).quaternion);
+	
+	quat q1 = quat.eulerRotation(PI, PI, PI);
+	assert((q1.x > -1e-16) && (q1.x < 1e-16));
+	assert((q1.y > -1e-16) && (q1.y < 1e-16));
+	assert((q1.z > -1e-16) && (q1.z < 1e-16));
+	assert(q1.w == -1.0f);
+	assert(quat.eulerRotation(PI, PI, PI).quaternion == quat().rotateEuler(PI, PI, PI).quaternion);
+}
+
+unittest
+{
+	import gl3n.math : almostEqual;
+
+	quat q1 = quat();
+	quat q2 = quat(vec4(0.0f, 1.0f, 2.0f, 3.0f));
+	quat q3 = quat(vec4(0.1f, 1.2f, 2.3f, 3.4f));
+	
+	assert((q1 * q1).quaternion == q1.quaternion);
+	assert((q1 * q2).quaternion == q2.quaternion);
+	assert((q2 * q1).quaternion == q2.quaternion);
+	quat q4 = q3 * q2;
+	assert((q2 * q3).quaternion != q4.quaternion);
+	q3 *= q2;
+	assert(q4.quaternion == q3.quaternion);
+	assert(almostEqual(q4.x, 0.4f));
+	assert(almostEqual(q4.y, 6.8f));
+	assert(almostEqual(q4.z, 13.8f));
+	assert(almostEqual(q4.w, 4.4f));
+	
+	quat q5 = quat(vec4(2.0f, 3.0f, 4.0f, 1.0f));
+	quat q6 = quat(vec4(1.0f, 6.0f, 2.0f, 3.0f));
+
+	assert((q5 - q6).quaternion == [1.0f, -3.0f, 2.0f, -2.0f]);
+	assert((q5 + q6).quaternion == [3.0f, 9.0f, 6.0f, 4.0f]);
+	assert((q6 - q5).quaternion == [-1.0f, 3.0f, -2.0f, 2.0f]);
+	assert((q6 + q5).quaternion == [3.0f, 9.0f, 6.0f, 4.0f]);
+	q5 += q6;
+	assert(q5.quaternion == [3.0f, 9.0f, 6.0f, 4.0f]);
+	q6 -= q6;
+	assert(q6.quaternion == [0.0f, 0.0f, 0.0f, 0.0f]);
+	
+	quat q7 = quat(vec4(2.0f, 2.0f, 2.0f, 2.0f));
+	assert((q7 * 2).quaternion == [4.0f, 4.0f, 4.0f, 4.0f]);
+	assert((2 * q7).quaternion == (q7 * 2).quaternion);
+	q7 *= 2;
+	assert(q7.quaternion == [4.0f, 4.0f, 4.0f, 4.0f]);
+	
+	vec3 v1 = vec3(1.0f, 2.0f, 3.0f);
+	assert((q1 * v1).vector == v1.vector);
+	assert((v1 * q1).vector == (q1 * v1).vector);
+	assert((q2 * v1).vector == [-2.0f, 36.0f, 38.0f]);
+}
+
+unittest
+{
+	assert(quat(vec4(1.0f, 2.0f, 3.0f, 4.0f)) == quat(vec4(1.0f, 2.0f, 3.0f, 4.0f)));
+	assert(quat(vec4(1.0f, 2.0f, 3.0f, 4.0f)) != quat(vec4(1.0f, 2.0f, 3.0f, 3.0f)));
+	
+	assert(!(quat(vec4(float.nan, float.nan, float.nan, float.nan))));
+	if(quat(vec4(1.0f, 1.0f, 1.0f, 1.0f))) { }
+	else { assert(false); }
+}
