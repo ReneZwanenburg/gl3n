@@ -1,7 +1,7 @@
-﻿module gl3n.matrix;
+﻿module kgl3n.matrix;
 
-import gl3n.vector;
-import gl3n.util;
+import kgl3n.vector;
+import kgl3n.util;
 import std.traits : isFloatingPoint, isIntegral;
 import std.algorithm : reduce, min;
 import std.math : sin, cos, tan, PI;
@@ -936,7 +936,7 @@ unittest
 
 unittest
 {
-	import gl3n.math : almostEqual;
+	import kgl3n.math : almostEqual;
 
 	assert(mat4.xRotation(0).almostEqual(mat4(
 		vec4(1.0f, 0.0f, 0.0f, 0.0f),
@@ -1052,7 +1052,7 @@ unittest
 
 unittest
 {
-	import gl3n.math : almostEqual;
+	import kgl3n.math : almostEqual;
 
 	float[6] cp = cperspective(600f, 900f, 60f, 1f, 100f);
 	assert(cp[4] == 1.0f);

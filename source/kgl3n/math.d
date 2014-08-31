@@ -1,5 +1,5 @@
 /**
-gl3n.math
+kgl3n.math
 
 Provides nearly all GLSL functions, according to spec 4.1,
 it also publically imports other useful functions (from std.math, core.stdc.math, std.alogrithm) 
@@ -13,7 +13,7 @@ Authors: David Herberth
 License: MIT
 */
 
-module gl3n.math;
+module kgl3n.math;
 
 public {
     import std.math : PI, sin, cos, tan, asin, acos, atan, atan2,
@@ -32,13 +32,13 @@ import std.traits : CommonType, isNumeric;
 import std.range : ElementType;
 import smath = std.math;
 
-import gl3n.vector : isVector;
-import gl3n.matrix : isMatrix;
-import gl3n.quaternion : isQuaternion;
+import kgl3n.vector : isVector;
+import kgl3n.matrix : isMatrix;
+import kgl3n.quaternion : isQuaternion;
 
 version(unittest) {
-	import gl3n.vector;
-	import gl3n.quaternion;
+	import kgl3n.vector;
+	import kgl3n.quaternion;
 }
 
 public enum real DegToRad	= PI / 180;

@@ -1,6 +1,6 @@
-﻿module gl3n.vector;
+﻿module kgl3n.vector;
 
-import gl3n.util;
+import kgl3n.util;
 import std.algorithm : min, max, among;
 
 /// Base template for all vector-types.
@@ -638,7 +638,7 @@ unittest
 
 unittest
 {
-	import gl3n.matrix;
+	import kgl3n.matrix;
 
 	vec2 v2 = vec2(1.0f, 3.0f);
 	auto v2times2 = 2 * v2;
@@ -663,7 +663,7 @@ unittest
 unittest
 {
 	import std.math : sqrt;
-	import gl3n.math : almostEqual;
+	import kgl3n.math : almostEqual;
 
 	vec2 v2 = vec2(1.0f, 3.0f);
 	v2 *= 2.5f;

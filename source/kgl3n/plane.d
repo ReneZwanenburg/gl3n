@@ -1,7 +1,7 @@
-module gl3n.plane;
+module kgl3n.plane;
 
-import gl3n.vector;
-import gl3n.math : almostEqual;
+import kgl3n.vector;
+import kgl3n.math : almostEqual;
 
 import std.traits : isFloatingPoint;
 

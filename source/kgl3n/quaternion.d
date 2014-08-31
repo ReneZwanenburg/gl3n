@@ -1,7 +1,7 @@
-﻿module gl3n.quaternion;
+﻿module kgl3n.quaternion;
 
-import gl3n.vector;
-import gl3n.matrix;
+import kgl3n.vector;
+import kgl3n.matrix;
 
 /// Base template for all quaternion-types.
 /// Params:
@@ -439,7 +439,7 @@ unittest
 
 unittest
 {
-	import gl3n.math : almostEqual;
+	import kgl3n.math : almostEqual;
 
 	quat q1 = quat(vec4(1.0f, 2.0f, 3.0f, 4.0));
 	
@@ -463,7 +463,7 @@ unittest
 
 unittest
 {
-	import gl3n.math : almostEqual;
+	import kgl3n.math : almostEqual;
 	import std.math : isNaN;
 
 	quat q1 = quat();
@@ -484,7 +484,7 @@ unittest
 
 unittest
 {
-	import gl3n.math : almostEqual;
+	import kgl3n.math : almostEqual;
 
 	quat q1 = quat(vec4(2.0f, 3.0f, 4.0f, 1.0f));
 	quat q2 = quat(vec4(2.0f, 3.0f, 4.0f, 1.0f));
@@ -521,7 +521,7 @@ unittest
 
 unittest
 {
-	import gl3n.math : almostEqual;
+	import kgl3n.math : almostEqual;
 
 	quat q1 = quat();
 	quat q2 = quat(vec4(0.0f, 1.0f, 2.0f, 3.0f));

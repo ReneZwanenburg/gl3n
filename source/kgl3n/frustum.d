@@ -1,13 +1,13 @@
 /// Note: this module is not completly tested!
 /// Use with special care, results might be wrong.
 
-module gl3n.frustum;
+module kgl3n.frustum;
 
-import gl3n.vector;
-import gl3n.matrix;
-import gl3n.math : abs;
-import gl3n.aabb : AABB;
-import gl3n.plane : Plane;
+import kgl3n.vector;
+import kgl3n.matrix;
+import kgl3n.math : abs;
+import kgl3n.aabb : AABB;
+import kgl3n.plane : Plane;
 
 ///
 struct Frustum

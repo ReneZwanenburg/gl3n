@@ -1,11 +1,11 @@
 /**
-gl3n.util
+kgl3n.util
 
 Authors: David Herberth
 License: MIT
 */
 
-module gl3n.util;
+module kgl3n.util;
 
 import std.typecons : TypeTuple;
 

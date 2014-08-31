@@ -1,12 +1,12 @@
-module gl3n.ext.hsv;
+module kgl3n.ext.hsv;
 
 import std.conv : to;
 
-import gl3n.vector;
-import gl3n.math : min, max, floor, PI;
+import kgl3n.vector;
+import kgl3n.math : min, max, floor, PI;
 
 version(unittest) {
-    import gl3n.math : almostEqual;
+    import kgl3n.math : almostEqual;
 }
 
 /// Converts a 3 dimensional color-vector from the RGB to the HSV colorspace.

@@ -1,17 +1,17 @@
 /**
-gl3n.interpolate
+kgl3n.interpolate
 
 Authors: David Herberth
 License: MIT
 */
 
 
-module gl3n.interpolate;
+module kgl3n.interpolate;
 
-import gl3n.math : almostEqual, acos, sin, sqrt, clamp, PI;
+import kgl3n.math : almostEqual, acos, sin, sqrt, clamp, PI;
 import std.conv : to;
-import gl3n.vector;
-import gl3n.quaternion;
+import kgl3n.vector;
+import kgl3n.quaternion;
 
 @safe pure nothrow:
 

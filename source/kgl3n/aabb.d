@@ -1,7 +1,7 @@
-module gl3n.aabb;
+module kgl3n.aabb;
 
-import gl3n.vector;
-import gl3n.math : almostEqual, min, max;
+import kgl3n.vector;
+import kgl3n.math : almostEqual, min, max;
 import std.range : isInputRange, ElementType;
 import std.array;
 

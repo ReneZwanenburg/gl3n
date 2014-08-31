@@ -1,0 +1,14 @@
+{
+    "name": "kgl3n",
+    "description": "An alternaive to gl3n, based on the original by David Herberth",
+    "copyright": "Copyright © 2011-2013, David Herberth. Copyright © 2014, René Zwanenburg",
+    "license": "MIT",
+    "targetType": "staticLibrary",
+    "targetName": "kgl3n",
+    "authors": [
+        "David Herberth",
+		"René Zwanenburg"
+    ],
+    "dependencies": {
+    }
+}
