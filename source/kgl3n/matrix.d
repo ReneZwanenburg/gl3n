@@ -670,16 +670,14 @@ body
 }
 	
 /// Returns a perspective matrix (4x4 and floating-point matrices only).
-Matrix!(T, 4) perspectiveProjection(T = float)(T width, T height, T fov, T near, T far)
-if(isFloatingPoint!T)
+mat4 perspectiveProjection(float width, float height, float fov, float near, float far)
 {
 	auto cdata = cperspective(width, height, fov, near, far);
 	return perspectiveProjection(cdata[0], cdata[1], cdata[2], cdata[3], cdata[4], cdata[5]);
 }
 
 /// ditto
-Matrix!(T, 4) perspectiveProjection(T = float)(T left, T right, T bottom, T top, T near, T far)
-if(isFloatingPoint!T)
+mat4 perspectiveProjection(float left, float right, float bottom, float top, float near, float far)
 in
 {
 	assert(right-left != 0);
@@ -700,16 +698,14 @@ body
 }
 
 /// Returns an inverse perspective matrix (4x4 and floating-point matrices only).
-Matrix!(T, 4) perspectiveProjectionInverse(T = float)(T width, T height, T fov, T near, T far)
-if(isFloatingPoint!T)
+mat4 perspectiveProjectionInverse(float width, float height, float fov, float near, float far)
 {
 	auto cdata = cperspective(width, height, fov, near, far);
 	return perspectiveProjectionInverse(cdata[0], cdata[1], cdata[2], cdata[3], cdata[4], cdata[5]);
 }
 
 /// ditto
-Matrix!(T, 4) perspectiveProjectionInverse(T = float)(T left, T right, T bottom, T top, T near, T far)
-if(isFloatingPoint!T)
+mat4 perspectiveProjectionInverse(float left, float right, float bottom, float top, float near, float far)
 in
 {
 	assert(near != 0);
@@ -730,8 +726,7 @@ body
 
 // (2) and (3) say this one is correct
 /// Returns an orthographic matrix (4x4 and floating-point matrices only).
-Matrix!(T, 4) orthographicProjection(T = float)(T left, T right, T bottom, T top, T near, T far)
-if(isFloatingPoint!T)
+mat4 orthographicProjection(float left, float right, float bottom, float top, float near, float far)
 in
 {
 	assert(right-left != 0);
@@ -752,8 +747,7 @@ body
 
 // (1) and (2) say this one is correct
 /// Returns an inverse ortographic matrix (4x4 and floating-point matrices only).
-Matrix!(T, 4) orthographicProjectionInverse(T = float)(T left, T right, T bottom, T top, T near, T far)
-if(isFloatingPoint!T)
+mat4 orthographicProjectionInverse(float left, float right, float bottom, float top, float near, float far)
 {
 	typeof(return) ret;
 	alias vt = Vector!(ret.mt, 2);
@@ -766,8 +760,8 @@ if(isFloatingPoint!T)
 }
 
 /// Returns a look at matrix (4x4 and floating-point matrices only).
-Matrix!(T.vt, 4) lookAtMatrix(T = vec3)(T eye, T target, T up)
-if(is(T == Vector!(VT, 3), VT...))
+Matrix!(T.vt, 4) lookAtMatrix(T = vec3)(T eye, T target, T up = T.e2)
+if(isVector!T)
 {
 	T look_dir = (target - eye).normalized;
 	T up_dir = up.normalized;
