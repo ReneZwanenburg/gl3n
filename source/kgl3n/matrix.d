@@ -6,6 +6,8 @@ import std.traits : isFloatingPoint, isIntegral;
 import std.algorithm : reduce, min;
 import std.math : sin, cos, tan, PI;
 
+import vibe.data.serialization;
+
 version(NoReciprocalMul)
 {
 	private enum ReciprocalMul = false;
@@ -29,6 +31,8 @@ else
 struct Matrix(type, size_t dimension_)
 	if(dimension_ > 0)
 {
+	@optional:
+
 	enum dimension = dimension_; /// Holds the number of rows and columns;
 	enum elementCount = dimension * dimension;
 

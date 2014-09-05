@@ -3,6 +3,8 @@
 import kgl3n.util;
 import std.algorithm : min, max, among;
 
+import vibe.data.serialization : optional;
+
 /// Base template for all vector-types.
 /// Params:
 /// type = all values get stored as this type
@@ -15,6 +17,8 @@ import std.algorithm : min, max, among;
 /// ---
 struct Vector(type, size_t dimension_)
 {
+	@optional:
+
 	static assert(dimension > 0, "0 dimensional vectors don't exist.");
 
 	alias vt = type; /// Holds the internal type of the vector.

@@ -3,11 +3,15 @@
 import kgl3n.vector;
 import kgl3n.matrix;
 
+import vibe.data.serialization : optional;
+
 /// Base template for all quaternion-types.
 /// Params:
 ///  type = all values get stored as this type
 struct Quaternion(type)
 {
+	@optional:
+
 	alias qt = type; /// Holds the internal type of the quaternion.
 	alias vt = Vector!(qt, 4);
 
@@ -230,17 +234,17 @@ struct Quaternion(type)
 	}
 	
 	/// Creates a quaternion from an euler rotation.
-	static Quaternion eulerRotation(real heading, real attitude, real bank)
+	static Quaternion eulerRotation(vec3 ypr)
 	{
 		Quaternion ret;
-		
-		real c1 = cos(heading / 2);
-		real s1 = sin(heading / 2);
-		real c2 = cos(attitude / 2);
-		real s2 = sin(attitude / 2);
-		real c3 = cos(bank / 2);
-		real s3 = sin(bank / 2);
-		
+
+		real c1 = cos(ypr.x / 2);
+		real s1 = sin(ypr.x / 2);
+		real c2 = cos(ypr.z / 2);
+		real s2 = sin(ypr.z / 2);
+		real c3 = cos(ypr.y / 2);
+		real s3 = sin(ypr.y / 2);
+
 		ret.w = c1 * c2 * c3 - s1 * s2 * s3;
 		ret.x = s1 * s2 * c3 + c1 * c2 * s3;
 		ret.y = s1 * c2 * c3 + c1 * s2 * s3;
@@ -277,9 +281,9 @@ struct Quaternion(type)
 	}
 	
 	/// Applies an euler rotation to the current quaternion and returns $(I this).
-	Quaternion rotateEuler(real heading, real attitude, real bank)
+	Quaternion rotateEuler(vec3 ypr)
 	{
-		this = eulerRotation(heading, attitude, bank) * this;
+		this = eulerRotation(ypr) * this;
 		return this;
 	}
 	
@@ -310,16 +314,16 @@ struct Quaternion(type)
 	{
 		Vector!(qt, 3) ret;
 		
-		qt ww = w^^2;
+		qt ww = w * w;
 		qt w2 = w * 2;
 		qt wx2 = w2 * x;
 		qt wy2 = w2 * y;
 		qt wz2 = w2 * z;
-		qt xx = x^^2;
+		qt xx = x * x;
 		qt x2 = x * 2;
 		qt xy2 = x2 * y;
 		qt xz2 = x2 * z;
-		qt yy = y^^2;
+		qt yy = y * y;
 		qt yz2 = 2 * y * z;
 		qt zz = z * z;
 		

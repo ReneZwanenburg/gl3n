@@ -9,6 +9,13 @@
         "David Herberth",
 		"René Zwanenburg"
     ],
+
+	"versions":
+	[
+		"VibeCustomMain"
+	],
+
     "dependencies": {
+		"vibe-d": { "version": "~master", "path": "../vibe.d" }
     }
 }
