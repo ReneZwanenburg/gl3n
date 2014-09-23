@@ -6,7 +6,7 @@ import std.traits : isFloatingPoint, isIntegral;
 import std.algorithm : reduce, min;
 import std.math : sin, cos, tan, PI;
 
-import vibe.data.serialization;
+import vibe.data.serialization : optional;
 
 version(NoReciprocalMul)
 {
@@ -84,6 +84,18 @@ struct Matrix(type, size_t dimension_)
 		}
 		
 		return "[" ~ join(outer_parts, "\n")[1..$] ~ "]";
+	}
+
+	auto toRepresentation()
+	{
+		return matrix;
+	}
+
+	static Matrix fromRepresentation(typeof(matrix) matrix)
+	{
+		Matrix retVal;
+		retVal.matrix = matrix;
+		return retVal;
 	}
 	
 	@safe pure nothrow:

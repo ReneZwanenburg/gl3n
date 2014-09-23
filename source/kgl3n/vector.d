@@ -40,6 +40,17 @@ struct Vector(type, size_t dimension_)
 		import std.string : format;
 		return format("%s", vector);
 	}
+
+	typeof(vector) toRepresentation()
+	{
+		return vector;
+	}
+
+	//TODO: Change Vibe's serializer to support toRepresentation without fromRepresentation
+	static Vector fromRepresentation(typeof(vector) vector)
+	{
+		return Vector(vector);
+	}
 	
 	@safe pure nothrow:
 	
@@ -383,7 +394,6 @@ struct Vector(type, size_t dimension_)
 	bool opCast(T : bool)() const {
 		return isFinite;
 	}
-	
 }
 
 /// Calculates the product between two vectors.

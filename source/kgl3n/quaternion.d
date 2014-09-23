@@ -39,6 +39,16 @@ struct Quaternion(type)
 	{
 		return quaternion.toString();
 	}
+
+	auto toRepresentation()
+	{
+		return quaternion;
+	}
+
+	static Quaternion fromRepresentation(typeof(quaternion) quaternion)
+	{
+		return Quaternion(quaternion);
+	}
 	
 	/// Returns true if all values are not nan and finite, otherwise false.
 	@property bool isFinite() const
