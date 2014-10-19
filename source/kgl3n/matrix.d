@@ -263,6 +263,18 @@ struct Matrix(type, size_t dimension_)
 		return this;
 	}
 
+	vt scale() const
+	{
+		vt retVal;
+
+		foreach(i; TupleRange!(0, dimension))
+		{
+			retVal[i] = matrix[i].magnitude;
+		}
+
+		return retVal;
+	}
+
 	static Matrix translation(tvt v)
 	{
 		Matrix ret;
@@ -280,6 +292,11 @@ struct Matrix(type, size_t dimension_)
 		//TODO improve perf
 		this = translation(v) * this;
 		return this;
+	}
+	
+	vt translation() const
+	{
+		return col(dimension-1);
 	}
 	
 	static if(dimension == 2)
