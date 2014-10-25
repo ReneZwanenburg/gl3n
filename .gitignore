@@ -6,3 +6,4 @@ import/
 lib/
 *.lib
 *.userprefs
+*.dll

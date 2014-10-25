@@ -254,27 +254,6 @@ struct Matrix(type, size_t dimension_)
 		return ret;
 	}
 
-	ref Matrix scale(tvt v)
-	{
-		foreach(i; TupleRange!(0, tvt.dimension))
-		{
-			matrix[i] *= v[i];
-		}
-		return this;
-	}
-
-	vt scale() const
-	{
-		vt retVal;
-
-		foreach(i; TupleRange!(0, dimension))
-		{
-			retVal[i] = matrix[i].magnitude;
-		}
-
-		return retVal;
-	}
-
 	static Matrix translation(tvt v)
 	{
 		Matrix ret;
@@ -441,6 +420,29 @@ struct Matrix(type, size_t dimension_)
 	
 	static if(dimension >= 3 && isFloatingPoint!mt)
 	{
+
+		
+		ref Matrix scale(tvt v)
+		{
+			foreach(i; TupleRange!(0, tvt.dimension))
+			{
+				matrix[i] *= v[i];
+			}
+			return this;
+		}
+		
+		vt scale() const
+		{
+			vt retVal;
+			
+			foreach(i; TupleRange!(0, dimension))
+			{
+				retVal[i] = matrix[i].xyz.magnitude;
+			}
+			
+			return retVal;
+		}
+
 		/// Returns an identity matrix with an applied rotateAxis around an arbitrary axis (nxn matrices, n >= 3).
 		static Matrix rotation(real alpha, tvt axis)
 		{
