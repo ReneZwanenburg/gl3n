@@ -1,0 +1,13 @@
+{
+	"dub": {
+		"cachedUpgrades": {
+			"vibe-d": {
+				"path": "F:/Dev/vibe.d"
+			},
+			"libevent": "~master",
+			"openssl": "~master",
+			"libev": "~master"
+		},
+		"lastUpgrade": "2014-12-15T03:50:01.9746809"
+	}
+}
