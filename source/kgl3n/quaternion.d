@@ -378,7 +378,7 @@ struct Quaternion(type)
 		quaternion[3] *= inp;
 	}
 	
-	const int opCmp(ref const Quaternion qua) const
+	int opCmp(ref const Quaternion qua) const
 	{
 		foreach(i, a; quaternion)
 		{

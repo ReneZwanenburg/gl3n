@@ -27,7 +27,6 @@ public {
 
 import std.conv : to;
 import std.algorithm : all;
-import std.array : zip;
 import std.traits : CommonType, isNumeric;
 import std.range : ElementType;
 import smath = std.math;
